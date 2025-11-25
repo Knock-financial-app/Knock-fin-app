@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.example.myapplication.ui.idcard
 
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -6,6 +6,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
 import java.io.File
 
