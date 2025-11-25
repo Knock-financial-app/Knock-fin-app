@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/Xbutton"
+        android:layout_width="43dp"
+        android:layout_height="45dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="#00FFFFFF"
+        android:text="X"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/Name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="이름"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.07"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/Xbutton" />
+
+    <view
+        android:id="@+id/NameTextbox"
+        class="com.example.myapplication.view.TextboxView"
+        android:layout_width="351dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="56dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/Name" />
+
+    <view
+        android:id="@+id/AiTextbox1"
+        class="com.example.myapplication.view.TextboxView"
+        android:layout_width="351dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="22dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/AiText" />
+
+    <view
+        android:id="@+id/AiTextbox2"
+        class="com.example.myapplication.view.TextboxView"
+        android:layout_width="351dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.516"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/AiTextbox1" />
+
+    <view
+        android:id="@+id/AiTextbox3"
+        class="com.example.myapplication.view.TextboxView"
+        android:layout_width="351dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.45"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/AiTextbox2" />
+
+    <view
+        android:id="@+id/VoiceTextbox"
+        class="com.example.myapplication.view.TextboxView"
+        android:layout_width="351dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        android:background="#FFE621"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.45"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/AiTextbox3" />
+
+    <view
+        android:id="@+id/DirectTextbox"
+        class="com.example.myapplication.view.TextboxView"
+        android:layout_width="351dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="32dp"
+        android:background="#FFE621"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.516"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/VoiceTextbox"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <Button
+        android:id="@+id/NoButton"
+        android:layout_width="349dp"
+        android:layout_height="43dp"
+        android:backgroundTint="#BABAC5"
+        android:text="아니오"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/NameTextbox"
+        app:layout_constraintVertical_bias="0.043" />
+
+    <TextView
+        android:id="@+id/AiText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="AI 추천"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.073"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/NoButton" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

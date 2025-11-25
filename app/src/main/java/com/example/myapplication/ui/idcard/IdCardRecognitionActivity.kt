@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.example.myapplication.ui.idcard
 
 import android.Manifest
 import android.content.Intent
@@ -13,6 +13,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
 import com.example.myapplication.view.OverlayView
 import com.google.mlkit.vision.common.InputImage
