@@ -1,23 +1,21 @@
 package com.example.myapplication.ui.check
 
-import android.R.attr.name
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
-import com.example.myapplication.view.TextboxView
 
 class CheckNameActivity : AppCompatActivity() {
 
-    private lateinit var nameTextbox : TextboxView
+    private lateinit var nameTextbox : EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("CheckName", " onCreate 호출됨")
         setContentView(R.layout.activity_check_name)
 
         nameTextbox = findViewById(R.id.NameTextbox)
@@ -36,7 +34,7 @@ class CheckNameActivity : AppCompatActivity() {
         }
 
         noButton.setOnClickListener{
-            val name = nameTextbox.getText()
+            val name = nameTextbox.text.toString()
             val intent = Intent(this, EditNameActivity::class.java)
             intent.putExtra("name", name)
             startActivity(intent)
@@ -46,7 +44,5 @@ class CheckNameActivity : AppCompatActivity() {
             //TODO 메인페이지 구현 이후 연결
             finish()
         }
-
     }
-
 }
