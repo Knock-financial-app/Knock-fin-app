@@ -1,9 +1,20 @@
 package com.example.myapplication.ui.idcard
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageFormat
+import android.graphics.Matrix
+import android.graphics.Rect
+import android.graphics.YuvImage
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
@@ -13,31 +24,63 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
 import com.example.myapplication.view.OverlayView
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.math.max
+import kotlin.math.min
 
 class IdCardRecognitionActivity : AppCompatActivity() {
+
     private lateinit var previewView: PreviewView
     private lateinit var overlayView: OverlayView
     private lateinit var statusText: TextView
     private lateinit var cameraExecutor: ExecutorService
-    private var imageCapture: ImageCapture? = null
+    private lateinit var textRecognizer: TextRecognizer
     private var isProcessing = false
-    private var lastAnalysisTime = 0L
     private var recognitionCompleted = false
-    private val textRecognizer = TextRecognition.getClient(KoreanTextRecognizerOptions.Builder().build())
+    private var validFrameCount = 0
+    private var vibrator: Vibrator? = null
+    private var currentHapticLevel = 0
+    private var frameCount = 0
+    private var lastLogTime = 0L
+    private var lastDetectedRect: Rect? = null
+    private var lastValidText: String = ""
+    private var lastValidBitmap: Bitmap? = null
+    private var analysisWidth = 0
+    private var analysisHeight = 0
+    private var analysisRotation = 0
+
     companion object {
-        private const val TAG = "IdCardRecognition"
+        private const val TAG = "IdCardRecog"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
-        private const val ANALYSIS_INTERVAL_MS = 500L
+
+        private const val REQUIRED_VALID_FRAMES = 5
+        private const val GUIDE_MATCH_THRESHOLD = 0.90f
+        private const val STABILITY_THRESHOLD = 0.08f
+        private const val CARD_ASPECT_RATIO = 1.585f
+        private val DRIVER_LICENSE_NUMBER_PATTERN = Regex("\\d{2}[- ]?\\d{2}[- ]?\\d{6}[- ]?\\d{2}")
+        private val RESIDENT_NUMBER_PATTERN = Regex("\\d{6}[- ]?[1-4]\\d{6}")
+        private val NAME_PATTERN = Regex("[가-힣]{2,4}")
+        private val ID_CARD_KEYWORDS = listOf("주민등록증", "운전면허증", "RESIDENT", "DRIVER", "LICENSE")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,12 +92,28 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         statusText = findViewById(R.id.statusText)
 
         cameraExecutor = Executors.newSingleThreadExecutor()
+        initVibrator()
+
+        textRecognizer = TextRecognition.getClient(
+            KoreanTextRecognizerOptions.Builder().build()
+        )
 
         if (allPermissionsGranted()) {
             startCamera()
         } else {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
+    }
+
+    private fun initVibrator() {
+        vibrator = try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                (getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager)?.defaultVibrator
+            } else {
+                @Suppress("DEPRECATION")
+                getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+            }
+        } catch (e: Exception) { null }
     }
 
     private fun startCamera() {
@@ -67,184 +126,554 @@ class IdCardRecognitionActivity : AppCompatActivity() {
                 it.setSurfaceProvider(previewView.surfaceProvider)
             }
 
-            imageCapture = ImageCapture.Builder()
-                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                .build()
-
             val imageAnalyzer = ImageAnalysis.Builder()
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .setTargetResolution(android.util.Size(1280, 720))
                 .build()
                 .also {
-                    it.setAnalyzer(cameraExecutor, IdCardAnalyzer())
+                    it.setAnalyzer(cameraExecutor) { imageProxy ->
+                        processFrame(imageProxy)
+                    }
                 }
-
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
             try {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture, imageAnalyzer
+                    this, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageAnalyzer
                 )
             } catch (e: Exception) {
-                Log.e(TAG, "카메라 바인딩 실패", e)
+                Log.e(TAG, "카메라 실패", e)
             }
 
         }, ContextCompat.getMainExecutor(this))
     }
 
-    private inner class IdCardAnalyzer : ImageAnalysis.Analyzer {
+    @androidx.camera.core.ExperimentalGetImage
+    private fun processFrame(imageProxy: ImageProxy) {
+        frameCount++
 
-        override fun analyze(imageProxy: ImageProxy) {
-            val currentTime = System.currentTimeMillis()
+        if (recognitionCompleted || isProcessing) {
+            imageProxy.close()
+            return
+        }
 
-            if (recognitionCompleted) {
+        val mediaImage = imageProxy.image ?: run {
+            imageProxy.close()
+            return
+        }
+
+        analysisWidth = imageProxy.width
+        analysisHeight = imageProxy.height
+        analysisRotation = imageProxy.imageInfo.rotationDegrees
+
+        val inputImage = InputImage.fromMediaImage(mediaImage, analysisRotation)
+
+        val currentTime = System.currentTimeMillis()
+        val shouldLog = currentTime - lastLogTime > 1000
+        if (shouldLog) {
+            Log.d(TAG, "===== Frame #$frameCount =====")
+            lastLogTime = currentTime
+        }
+
+        textRecognizer.process(inputImage)
+            .addOnSuccessListener { visionText ->
+                handleTextResult(visionText, imageProxy, shouldLog)
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "텍스트 인식 실패", e)
                 imageProxy.close()
-                return
+            }
+    }
+
+    private fun handleTextResult(
+        visionText: Text,
+        imageProxy: ImageProxy,
+        shouldLog: Boolean
+    ) {
+        val fullText = visionText.text
+        val textBlocks = visionText.textBlocks
+
+        if (textBlocks.isEmpty()) {
+            handleInvalidFrame("텍스트가 보이지 않습니다")
+            imageProxy.close()
+            return
+        }
+
+        val idCardScore = calculateIdCardScore(fullText)
+        val isIdCard = idCardScore >= 2
+
+        if (shouldLog) {
+            Log.d(TAG, "텍스트: ${fullText.take(50)}...")
+            Log.d(TAG, "신분증 점수: $idCardScore, 인식: $isIdCard")
+        }
+
+        if (!isIdCard) {
+            handleInvalidFrame("신분증을 비춰주세요")
+            imageProxy.close()
+            return
+        }
+
+        val (rotatedWidth, rotatedHeight) = when (analysisRotation) {
+            90, 270 -> analysisHeight to analysisWidth
+            else -> analysisWidth to analysisHeight
+        }
+
+        val guideRect = calculateGuideRect(rotatedWidth, rotatedHeight)
+
+        val textBounds = calculateTextBounds(textBlocks)
+
+        val cardRect = expandToCardRatio(textBounds, guideRect, rotatedWidth, rotatedHeight)
+
+        if (shouldLog) {
+            Log.d(TAG, "이미지 크기: ${rotatedWidth}x${rotatedHeight}")
+            Log.d(TAG, "가이드 영역: $guideRect")
+            Log.d(TAG, "텍스트 영역: $textBounds")
+            Log.d(TAG, "카드 영역: $cardRect")
+        }
+
+        val matchResult = calculateGuideMatch(cardRect, guideRect)
+
+        if (shouldLog) {
+            Log.d(TAG, "매칭 - 내부: ${(matchResult.insideRatio * 100).toInt()}%, 채움: ${(matchResult.fillRatio * 100).toInt()}%")
+        }
+
+        val isInsideGuide = matchResult.insideRatio >= GUIDE_MATCH_THRESHOLD
+        val isStable = isStablePosition(cardRect)
+
+        val isValidFrame = isIdCard && isInsideGuide && matchResult.fillRatio >= 0.95f && isStable
+
+        triggerHapticFeedback(isIdCard, matchResult.fillRatio)
+
+        val fillPercent = (matchResult.fillRatio * 100).toInt()
+        val statusMessage = when {
+            isValidFrame -> "완벽해요! 유지하세요 ($validFrameCount/$REQUIRED_VALID_FRAMES)"
+            fillPercent >= 90 -> "거의 다 됐어요! ($fillPercent%)"
+            fillPercent >= 80 -> "조금만 더! ($fillPercent%)"
+            fillPercent >= 70 -> "좋아요, 더 가까이 ($fillPercent%)"
+            isIdCard -> "신분증을 가까이 가져오세요 ($fillPercent%)"
+            else -> "가이드에 맞춰주세요"
+        }
+
+        val guideColor = when {
+            isValidFrame -> android.graphics.Color.GREEN
+            fillPercent >= 90 -> android.graphics.Color.rgb(150, 255, 0)   // 연두
+            fillPercent >= 80 -> android.graphics.Color.YELLOW
+            fillPercent >= 70 -> android.graphics.Color.rgb(255, 200, 0)   // 주황-노랑
+            isIdCard -> android.graphics.Color.rgb(255, 140, 0)            // 주황
+            else -> android.graphics.Color.WHITE
+        }
+
+        runOnUiThread {
+            statusText.text = statusMessage
+            overlayView.setGuideColor(guideColor)
+            overlayView.setDebugText("채움:${fillPercent}% Lv:$currentHapticLevel 연속:$validFrameCount")
+            overlayView.setDetectedRect(cardRect, rotatedWidth, rotatedHeight, 0)
+        }
+
+        if (isValidFrame) {
+            validFrameCount++
+            lastValidText = fullText
+            lastDetectedRect = cardRect
+
+            if (validFrameCount == REQUIRED_VALID_FRAMES - 1) {
+                lastValidBitmap?.recycle()
+                lastValidBitmap = cropGuideArea(imageProxy, guideRect)
             }
 
-            if (isProcessing || (currentTime - lastAnalysisTime) < ANALYSIS_INTERVAL_MS) {
-                imageProxy.close()
-                return
+            if (validFrameCount >= REQUIRED_VALID_FRAMES) {
+                isProcessing = true
+
+                if (lastValidBitmap == null) {
+                    lastValidBitmap = cropGuideArea(imageProxy, guideRect)
+                }
+
+                Log.d(TAG, "★★★ 인식 완료! ★★★")
+                processAndSaveIdCard(lastValidText, lastValidBitmap)
             }
+        } else {
+            if (validFrameCount > 0) {
+                validFrameCount = maxOf(0, validFrameCount - 1)
+            }
+            lastDetectedRect = cardRect
+        }
 
-            isProcessing = true
-            lastAnalysisTime = currentTime
+        imageProxy.close()
+    }
 
-            val mediaImage = imageProxy.image
-            if (mediaImage != null) {
-                val image = InputImage.fromMediaImage(
-                    mediaImage,
-                    imageProxy.imageInfo.rotationDegrees
-                )
+    private fun calculateTextBounds(textBlocks: List<Text.TextBlock>): Rect {
+        var minX = Int.MAX_VALUE
+        var minY = Int.MAX_VALUE
+        var maxX = Int.MIN_VALUE
+        var maxY = Int.MIN_VALUE
 
-                performOCR(image, imageProxy)
+        for (block in textBlocks) {
+            block.boundingBox?.let { box ->
+                minX = min(minX, box.left)
+                minY = min(minY, box.top)
+                maxX = max(maxX, box.right)
+                maxY = max(maxY, box.bottom)
+            }
+        }
+
+        return Rect(minX, minY, maxX, maxY)
+    }
+
+    private fun expandToCardRatio(
+        textBounds: Rect,
+        guideRect: Rect,
+        imageWidth: Int,
+        imageHeight: Int
+    ): Rect {
+        if (textBounds.isEmpty) return guideRect
+
+        val textWidth = textBounds.width().toFloat()
+        val textHeight = textBounds.height().toFloat()
+        val textCenterX = textBounds.centerX().toFloat()
+        val textCenterY = textBounds.centerY().toFloat()
+
+        val estimatedCardWidth = textWidth / 0.55f
+        val estimatedCardHeightFromText = textHeight / 0.75f
+        val estimatedCardHeightFromRatio = estimatedCardWidth / CARD_ASPECT_RATIO
+        val finalHeight = max(estimatedCardHeightFromText, estimatedCardHeightFromRatio)
+        val finalWidth = finalHeight * CARD_ASPECT_RATIO
+        val horizontalOffset = finalWidth * 0.1f
+        val verticalOffset = finalHeight * 0.05f
+
+        val centerX = textCenterX - horizontalOffset
+        val centerY = textCenterY - verticalOffset
+
+        val left = (centerX - finalWidth / 2).toInt()
+        val top = (centerY - finalHeight / 2).toInt()
+        val right = (centerX + finalWidth / 2).toInt()
+        val bottom = (centerY + finalHeight / 2).toInt()
+
+        return Rect(
+            max(0, left),
+            max(0, top),
+            min(imageWidth, right),
+            min(imageHeight, bottom)
+        )
+    }
+
+    private fun calculateGuideRect(imageWidth: Int, imageHeight: Int): Rect {
+        val guideWidth = (imageWidth * 0.85f).toInt()
+        val guideHeight = (guideWidth / CARD_ASPECT_RATIO).toInt()
+        val left = (imageWidth - guideWidth) / 2
+        val top = (imageHeight - guideHeight) / 2
+        return Rect(left, top, left + guideWidth, top + guideHeight)
+    }
+
+    data class GuideMatchResult(val insideRatio: Float, val fillRatio: Float)
+
+    private fun calculateGuideMatch(card: Rect, guide: Rect): GuideMatchResult {
+        if (card.isEmpty) return GuideMatchResult(0f, 0f)
+
+        val intersection = Rect()
+        if (!intersection.setIntersect(card, guide)) {
+            return GuideMatchResult(0f, 0f)
+        }
+
+        val intersectionArea = intersection.width().toLong() * intersection.height()
+        val cardArea = card.width().toLong() * card.height()
+        val guideArea = guide.width().toLong() * guide.height()
+
+        return GuideMatchResult(
+            if (cardArea > 0) intersectionArea.toFloat() / cardArea else 0f,
+            if (guideArea > 0) intersectionArea.toFloat() / guideArea else 0f
+        )
+    }
+
+    private fun isStablePosition(currentRect: Rect): Boolean {
+        val lastRect = lastDetectedRect ?: return true
+        if (lastRect.isEmpty || currentRect.isEmpty) return true
+
+        val avgSize = (lastRect.width() + lastRect.height()) / 2f
+        if (avgSize == 0f) return true
+
+        val centerXDiff = kotlin.math.abs(currentRect.centerX() - lastRect.centerX()).toFloat()
+        val centerYDiff = kotlin.math.abs(currentRect.centerY() - lastRect.centerY()).toFloat()
+
+        return (centerXDiff + centerYDiff) / avgSize < STABILITY_THRESHOLD
+    }
+
+    private fun calculateIdCardScore(text: String): Int {
+        var score = 0
+        if (RESIDENT_NUMBER_PATTERN.containsMatchIn(text)) score += 2
+        for (keyword in ID_CARD_KEYWORDS) {
+            if (text.contains(keyword, ignoreCase = true)) { score += 2; break }
+        }
+        if (NAME_PATTERN.containsMatchIn(text)) score += 1
+        if (Regex("\\d{4}[./-]\\d{1,2}[./-]\\d{1,2}").containsMatchIn(text)) score += 1
+        return score
+    }
+
+    private fun handleInvalidFrame(message: String) {
+        if (validFrameCount > 0) validFrameCount--
+
+        stopHapticFeedback()
+
+        runOnUiThread {
+            statusText.text = message
+            overlayView.clearDetection()
+            overlayView.setGuideColor(android.graphics.Color.WHITE)
+        }
+    }
+
+    private fun triggerHapticFeedback(
+        isIdCardDetected: Boolean,
+        fillRatio: Float
+    ) {
+        if (!isIdCardDetected) {
+            if (currentHapticLevel != 0) {
+                currentHapticLevel = 0
+                vibrator?.cancel()
+            }
+            return
+        }
+
+        val newHapticLevel = when {
+            fillRatio >= 0.95f -> 5
+            fillRatio >= 0.90f -> 4
+            fillRatio >= 0.80f -> 3
+            fillRatio >= 0.70f -> 2
+            else -> 1
+        }
+
+        if (newHapticLevel != currentHapticLevel) {
+            currentHapticLevel = newHapticLevel
+            vibrator?.cancel()
+            startVibrationPattern(newHapticLevel)
+        }
+    }
+
+    private fun startVibrationPattern(level: Int) {
+        vibrator?.let { vib ->
+            if (!vib.hasVibrator()) return
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                when (level) {
+                    5 -> {
+                        vib.vibrate(VibrationEffect.createOneShot(10000L, 200))
+                    }
+                    4 -> {
+                        val pattern = longArrayOf(0, 50, 60, 50, 60, 50, 60)
+                        vib.vibrate(VibrationEffect.createWaveform(pattern, 0))
+                    }
+                    3 -> {
+                        val pattern = longArrayOf(0, 50, 120, 50, 120, 50, 120)
+                        vib.vibrate(VibrationEffect.createWaveform(pattern, 0))
+                    }
+                    2 -> {
+                        val pattern = longArrayOf(0, 50, 250, 50, 250, 50, 250)
+                        vib.vibrate(VibrationEffect.createWaveform(pattern, 0))
+                    }
+                    1 -> {
+                        val pattern = longArrayOf(0, 50, 500, 50, 500, 50, 500)
+                        vib.vibrate(VibrationEffect.createWaveform(pattern, 0))
+                    }
+                }
             } else {
-                isProcessing = false
-                imageProxy.close()
+                @Suppress("DEPRECATION")
+                val interval = when (level) {
+                    5 -> longArrayOf(0, 10000)
+                    4 -> longArrayOf(0, 50, 60)
+                    3 -> longArrayOf(0, 50, 120)
+                    2 -> longArrayOf(0, 50, 250)
+                    else -> longArrayOf(0, 50, 500)
+                }
+                vib.vibrate(interval, if (level == 5) -1 else 0)
             }
         }
     }
 
-    private fun performOCR(image: InputImage, imageProxy: ImageProxy) {
-        textRecognizer.process(image)
-            .addOnSuccessListener { visionText ->
-                val extractedText = visionText.text
+    private fun stopHapticFeedback() {
+        currentHapticLevel = 0
+        vibrator?.cancel()
+    }
 
-                if (extractedText.isNotEmpty() && !recognitionCompleted) {
-                    Log.d(TAG, "인식된 텍스트: $extractedText")
+    @androidx.camera.core.ExperimentalGetImage
+    private fun cropGuideArea(imageProxy: ImageProxy, guideRect: Rect): Bitmap? {
+        return try {
+            val fullBitmap = imageProxyToBitmap(imageProxy) ?: return null
+            val cropLeft = max(0, guideRect.left)
+            val cropTop = max(0, guideRect.top)
+            val cropRight = min(fullBitmap.width, guideRect.right)
+            val cropBottom = min(fullBitmap.height, guideRect.bottom)
 
-                    val idCardInfo = extractIdCardInfo(extractedText)
+            val cropWidth = cropRight - cropLeft
+            val cropHeight = cropBottom - cropTop
 
-                    if (idCardInfo.isValid()) {
-                        recognitionCompleted = true
+            if (cropWidth <= 0 || cropHeight <= 0) {
+                return fullBitmap
+            }
 
-                        runOnUiThread {
-                            statusText.text = "✓ 신분증 인식 완료! 이동 중..."
-                            overlayView.setDetectionStatus(true)
-                        }
+            val croppedBitmap = Bitmap.createBitmap(
+                fullBitmap,
+                cropLeft,
+                cropTop,
+                cropWidth,
+                cropHeight
+            )
 
-                        capturePhotoAndNavigate(idCardInfo)
-                    }
+            if (croppedBitmap != fullBitmap) {
+                fullBitmap.recycle()
+            }
+
+            croppedBitmap
+
+        } catch (e: Exception) {
+            Log.e(TAG, "크롭 실패: ${e.message}", e)
+            null
+        }
+    }
+
+    @androidx.camera.core.ExperimentalGetImage
+    private fun imageProxyToBitmap(imageProxy: ImageProxy): Bitmap? {
+        return try {
+            val image = imageProxy.image ?: return null
+
+            val width = image.width
+            val height = image.height
+
+            val yPlane = image.planes[0]
+            val uPlane = image.planes[1]
+            val vPlane = image.planes[2]
+
+            val yBuffer = yPlane.buffer
+            val uBuffer = uPlane.buffer
+            val vBuffer = vPlane.buffer
+
+            val yRowStride = yPlane.rowStride
+            val uvRowStride = uPlane.rowStride
+            val uvPixelStride = uPlane.pixelStride
+            val nv21 = ByteArray(width * height * 3 / 2)
+
+            var pos = 0
+            for (row in 0 until height) {
+                yBuffer.position(row * yRowStride)
+                yBuffer.get(nv21, pos, width)
+                pos += width
+            }
+
+            val uvHeight = height / 2
+            for (row in 0 until uvHeight) {
+                for (col in 0 until width / 2) {
+                    val vIndex = row * uvRowStride + col * uvPixelStride
+                    val uIndex = row * uvRowStride + col * uvPixelStride
+
+                    vBuffer.position(vIndex)
+                    nv21[pos++] = vBuffer.get()
+
+                    uBuffer.position(uIndex)
+                    nv21[pos++] = uBuffer.get()
                 }
+            }
 
-                isProcessing = false
-                imageProxy.close()
+            val yuvImage = YuvImage(nv21, ImageFormat.NV21, width, height, null)
+            val out = ByteArrayOutputStream()
+            yuvImage.compressToJpeg(Rect(0, 0, width, height), 100, out)
+            val bytes = out.toByteArray()
+            out.close()
+
+            var bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+
+            if (bitmap != null && analysisRotation != 0) {
+                val matrix = Matrix().apply { postRotate(analysisRotation.toFloat()) }
+                val rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                if (rotated != bitmap) bitmap.recycle()
+                bitmap = rotated
             }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "OCR 실패", e)
-                isProcessing = false
-                imageProxy.close()
+
+            bitmap
+        } catch (e: Exception) {
+            Log.e(TAG, "비트맵 변환 실패: ${e.message}", e)
+            null
+        }
+    }
+
+    private fun processAndSaveIdCard(fullText: String, bitmap: Bitmap?) {
+        lifecycleScope.launch {
+            runOnUiThread { statusText.text = "저장 중..." }
+
+            val imagePath = withContext(Dispatchers.IO) { saveImage(bitmap) }
+
+            val idCardInfo = extractIdCardInfo(fullText)
+            if (imagePath != null) {
+                idCardInfo.imagePath = imagePath
             }
+
+            Log.d(TAG, "저장 완료: $imagePath")
+            Log.d(TAG, "추출 정보: $idCardInfo")
+
+            if (idCardInfo.isValid()) {
+                recognitionCompleted = true
+                navigateToResult(idCardInfo)
+            } else {
+                runOnUiThread { statusText.text = "정보 추출 실패. 다시 시도하세요." }
+                resetProcessing()
+            }
+        }
+    }
+
+    private fun saveImage(bitmap: Bitmap?): String? {
+        if (bitmap == null) return null
+
+        return try {
+            val dir = File(filesDir, "id_cards").apply { if (!exists()) mkdirs() }
+            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val file = File(dir, "id_card_$timestamp.jpg")
+
+            FileOutputStream(file).use { fos ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 95, fos)
+            }
+
+            Log.d(TAG, "이미지 저장: ${file.absolutePath}, 크기: ${bitmap.width}x${bitmap.height}")
+            file.absolutePath
+        } catch (e: Exception) {
+            Log.e(TAG, "저장 실패: ${e.message}")
+            null
+        }
     }
 
     private fun extractIdCardInfo(text: String): IdCardInfo {
-        val info = IdCardInfo()
-
-        // 이름
-        val namePattern = Regex("[가-힣]{2,4}")
-        val nameMatch = namePattern.find(text)
-        info.name = nameMatch?.value ?: ""
-
-        // 주민번호
-        val residentPattern = Regex("\\d{6}-?[1-4]\\d{6}")
-        val residentMatch = residentPattern.find(text)
-        info.residentNumber = residentMatch?.value ?: ""
-
-        // 발급일
-        val datePattern = Regex("\\d{4}[.\\-/]\\d{2}[.\\-/]\\d{2}")
-        val dateMatch = datePattern.find(text)
-        info.issueDate = dateMatch?.value ?: ""
-
-        // 주소
-        val addressPattern = Regex("([가-힣]+시|[가-힣]+도)\\s*[가-힣]+구?\\s*[가-힣]+동?")
-        val addressMatch = addressPattern.find(text)
-        info.address = addressMatch?.value ?: ""
-
-        return info
+        return IdCardInfo().apply {
+            driverLicenseNumber = DRIVER_LICENSE_NUMBER_PATTERN.find(text)?.value?.replace(" ", "") ?: ""
+            residentNumber = RESIDENT_NUMBER_PATTERN.find(text)?.value?.replace(" ", "") ?: ""
+            name = NAME_PATTERN.find(text)?.value ?: ""
+            issueDate = Regex("\\d{4}[./-]\\d{1,2}[./-]\\d{1,2}").find(text)?.value ?: ""
+            address = Regex("([가-힣]+(?:시|도))[\\s]*[가-힣]+").find(text)?.value ?: ""
+        }
     }
 
-    private fun capturePhotoAndNavigate(idCardInfo: IdCardInfo) {
-        val imageCapture = imageCapture
-
-        if (imageCapture != null) {
-            val photoFile = createImageFile()
-            val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
-            imageCapture.takePicture(
-                outputOptions,
-                ContextCompat.getMainExecutor(this),
-                object : ImageCapture.OnImageSavedCallback {
-                    override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                        idCardInfo.imagePath = photoFile.absolutePath
-                        navigateToResult(idCardInfo)
-                    }
-
-                    override fun onError(exc: ImageCaptureException) {
-                        Log.e(TAG, "사진 저장 실패", exc)
-                        navigateToResult(idCardInfo)
-                    }
-                }
-            )
-        } else {
-            navigateToResult(idCardInfo)
-        }
+    private fun resetProcessing() {
+        isProcessing = false
+        validFrameCount = 0
+        lastDetectedRect = null
+        lastValidText = ""
+        lastValidBitmap?.recycle()
+        lastValidBitmap = null
     }
 
     private fun navigateToResult(idCardInfo: IdCardInfo) {
-        val intent = Intent(this, IdCardResultActivity::class.java).apply {
-            putExtra("ID_CARD_INFO", idCardInfo)
-        }
-        startActivity(intent)
+        startActivity(Intent(this, IdCardResultActivity::class.java).putExtra("ID_CARD_INFO", idCardInfo))
         finish()
-    }
-
-    private fun createImageFile(): File {
-        return File(getExternalFilesDir(null), "id_card_${System.currentTimeMillis()}.jpg")
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CODE_PERMISSIONS) {
-            if (allPermissionsGranted()) {
-                startCamera()
-            } else {
-                Toast.makeText(this, "카메라 권한이 필요합니다", Toast.LENGTH_SHORT).show()
-                finish()
-            }
-        }
+        if (requestCode == REQUEST_CODE_PERMISSIONS && allPermissionsGranted()) startCamera()
+        else { Toast.makeText(this, "카메라 권한 필요", Toast.LENGTH_SHORT).show(); finish() }
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        stopHapticFeedback()
         cameraExecutor.shutdown()
         textRecognizer.close()
+        lastValidBitmap?.recycle()
     }
 }

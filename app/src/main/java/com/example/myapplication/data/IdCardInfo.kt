@@ -6,6 +6,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class IdCardInfo(
     var name: String = "",
+    var driverLicenseNumber: String = "",
     var residentNumber: String = "",
     var issueDate: String = "",
     var address: String = "",
