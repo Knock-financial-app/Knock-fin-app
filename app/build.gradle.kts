@@ -76,6 +76,7 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.cardview)
+    implementation(libs.androidx.coordinatorlayout)
     implementation(libs.material)
     implementation(libs.androidx.fragment)
     implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
