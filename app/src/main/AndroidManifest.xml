@@ -32,7 +32,7 @@
             android:exported="false"/>
         <activity android:name=".ui.check.CheckNameActivity"
             android:exported="true"/>
-        <activity android:name=".ui.check.EditNameActivity"
+        <activity android:name=".ui.check.CheckResidentNumberActivity"
             android:exported="true"/>
     </application>
 
