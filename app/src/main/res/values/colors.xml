@@ -10,4 +10,5 @@
     <color name="gray">#87889D</color>
     <color name="Theme_color_main">#0F113A</color>
     <color name="Theme_color_point">#FFE621</color>
+    <color name="aiNameButton_default">#BABAC5</color>
 </resources>
