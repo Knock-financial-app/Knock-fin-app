@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -35,6 +34,7 @@ class CheckNameActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("CheckName", " onCreate 호출됨")
         setContentView(R.layout.activity_check_name)
 
         nameTextbox = findViewById<EditText>(R.id.NameTextbox)
@@ -122,6 +122,7 @@ class CheckNameActivity : AppCompatActivity() {
             nameTextbox.setText(aiNameButton3.text)
             selectAiNameButton(aiNameButton3)
         }
+
     }
 
     private fun selectAiNameButton(selectedButton: Button) {

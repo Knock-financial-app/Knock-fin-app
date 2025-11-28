@@ -13,11 +13,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        cameraButton = findViewById(R.id.camera_button)
-        cameraButton.setOnClickListener {
-            val intent = Intent(this, IdCardRecognitionActivity::class.java)
-            startActivity(intent)
-        }
-
+//        cameraButton = findViewById(R.id.camera_button)
+//        cameraButton.setOnClickListener {
+//            val intent = Intent(this, IdCardRecognitionActivity::class.java)
+//            startActivity(intent)
+//        }
     }
 }
