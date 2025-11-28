@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import com.example.myapplication.ui.idcard.IdCardRecognitionActivity
 
 class MainActivity : AppCompatActivity() {
     private lateinit var cameraButton: Button
