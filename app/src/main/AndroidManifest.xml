@@ -36,6 +36,8 @@
             android:exported="true"/>
         <activity android:name=".ui.check.CheckDriverActivity"
             android:exported="true"/>
+        <activity android:name=".ui.check.CheckIssueDateActivity"
+            android:exported="true"/>
     </application>
 
 </manifest>
