@@ -34,6 +34,8 @@
             android:exported="true"/>
         <activity android:name=".ui.check.CheckResidentNumberActivity"
             android:exported="true"/>
+        <activity android:name=".ui.check.CheckDriverActivity"
+            android:exported="true"/>
     </application>
 
 </manifest>
