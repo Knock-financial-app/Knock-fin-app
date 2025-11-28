@@ -10,13 +10,13 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_knk"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/ic_knk"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.main.SplashActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.MyApplication">
@@ -26,6 +26,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ui.main.MainActivity"
+            android:exported="false"/>
+        <activity android:name=".ui.main.SecureAuthActivity"
+            android:exported="false"/>
+        <activity android:name=".ui.idcard.ChooseIdCardActivity"
+            android:exported="false"/>
+        <activity android:name=".ui.idcard.CreateAccountActivity"
+            android:exported="false"/>
+        <activity android:name=".ui.idcard.IdCardReadyActivity"
+            android:exported="false"/>
         <activity android:name=".ui.idcard.IdCardRecognitionActivity"
             android:exported="false"/>
         <activity android:name=".ui.idcard.IdCardResultActivity"
