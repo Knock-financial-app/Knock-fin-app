@@ -1,10 +1,13 @@
 package com.example.myapplication.ui.check
 
 import android.app.Activity
+import android.app.ProgressDialog.show
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -13,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.myapplication.BuildConfig
 import com.example.myapplication.R
+import com.example.myapplication.data.IdCardInfo
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.android.material.internal.ViewUtils.showKeyboard
 import kotlinx.coroutines.launch
@@ -35,7 +39,6 @@ class CheckNameActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("CheckName", " onCreate 호출됨")
         setContentView(R.layout.activity_check_name)
 
         nameTextbox = findViewById<EditText>(R.id.NameTextbox)
@@ -57,13 +60,19 @@ class CheckNameActivity : AppCompatActivity() {
         }
 
         nextButton.setOnClickListener{
-            //TODO 주민등록번호 확인 페이지 연결
             val intent = Intent(this, CheckResidentNumberActivity::class.java)
             startActivity(intent)
         }
 
-        //TODO idCardInfo 데이터로 받아오기
-        nameTextbox.setText("위혜정")
+        val idCardInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra("idCardInfo", IdCardInfo::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra("idCardInfo")
+        }
+
+        nameTextbox.setText(idCardInfo?.name ?: "")
+
         hideAiNameButtons()
         genterateAiNames()
         setupButtonClickListeners()
@@ -144,5 +153,10 @@ class CheckNameActivity : AppCompatActivity() {
         aiNameButton1.visibility = View.VISIBLE
         aiNameButton2.visibility = View.VISIBLE
         aiNameButton3.visibility = View.VISIBLE
+    }
+
+    private fun showKeyboard(selected : View) {
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(selected, InputMethodManager.SHOW_IMPLICIT)
     }
 }

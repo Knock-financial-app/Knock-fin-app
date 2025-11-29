@@ -1,12 +1,16 @@
 package com.example.myapplication.ui.check
 
 import android.R.attr.name
+import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
+import com.example.myapplication.data.IdCardInfo
 import com.google.android.material.internal.ViewUtils.showKeyboard
 
 class CheckResidentNumberActivity : AppCompatActivity() {
@@ -48,15 +52,24 @@ class CheckResidentNumberActivity : AppCompatActivity() {
 
         nextButton.setOnClickListener{
             finish()
-            //TODO 주민등록번호 확인 페이지 연결
-//            val name = nameTextbox.getText()
-//            val intent = Intent(this, Activity::class.java)
-//            intent.putExtra("name", name)
-//            startActivity(intent)
+            //TODO 일단 운전면허번호로 연결함 추후에 민증이면 발급일자로 연결
+            setContentView(R.layout.activity_check_driver)
         }
 
-        //TODO idCardInfo 데이터로 받아오기
-        rrnFrontTextbox.setText("012345")
-        rrnBackFirstDigit.setText("1")
+        val idCardInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra("idCardInfo", IdCardInfo::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra("idCardInfo")
+        }
+
+        val rrnFull = idCardInfo?.residentNumber ?: ""
+        rrnFrontTextbox.setText(rrnFull.take(6))
+        rrnBackFirstDigit.setText(rrnFull.getOrNull(6)?.toString() ?: "")
+    }
+
+    private fun showKeyboard(selected : View) {
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(selected, InputMethodManager.SHOW_IMPLICIT)
     }
 }
