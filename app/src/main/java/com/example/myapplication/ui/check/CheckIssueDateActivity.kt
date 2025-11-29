@@ -1,12 +1,16 @@
 package com.example.myapplication.ui.check
 
 import android.R.attr.name
+import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
+import com.example.myapplication.data.IdCardInfo
 import com.google.android.material.internal.ViewUtils.showKeyboard
 
 class CheckIssueDateActivity : AppCompatActivity() {
@@ -42,21 +46,32 @@ class CheckIssueDateActivity : AppCompatActivity() {
         }
 
         prevButton.setOnClickListener{
-            setContentView(R.layout.activity_check_name)
+            //TODO 민증이면 추후에 주민등록번호 페이지로 연결
+            setContentView(R.layout.activity_check_driver)
         }
 
         nextButton.setOnClickListener{
             finish()
             //TODO 다음 확인 페이지 연결
-//            val name = nameTextbox.getText()
-//            val intent = Intent(this, Activity::class.java)
-//            intent.putExtra("name", name)
-//            startActivity(intent)
+            //setContentView(R.layout.activity_check_driver)
+
         }
 
-        //TODO idCardInfo 데이터로 받아오기
-        yearTextbox.setText("2025")
-        monthTextbox.setText("12")
-        dayTextbox.setText("01")
+        val idCardInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra("idCardInfo", IdCardInfo::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra("idCardInfo")
+        }
+
+        val dateFull = idCardInfo?.issueDate ?: ""
+        yearTextbox.setText(dateFull.substring(0, 4))
+        monthTextbox.setText(dateFull.substring(4, 6))
+        dayTextbox.setText(dateFull.substring(6, 8))
+    }
+
+    private fun showKeyboard(selected : View) {
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(selected, InputMethodManager.SHOW_IMPLICIT)
     }
 }
