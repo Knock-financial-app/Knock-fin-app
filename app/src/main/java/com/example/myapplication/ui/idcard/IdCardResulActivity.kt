@@ -56,6 +56,7 @@ class IdCardResultActivity : AppCompatActivity() {
     private fun displayIdCardInfo(info: IdCardInfo) {
         nameText.text = "이름: ${info.name}"
         residentNumberText.text = "주민번호: ${maskResidentNumber(info.residentNumber)}"
+        driverLicenseNumberText.text = "운전면허번호: ${info.driverLicenseNumber}"
         issueDateText.text = "발급일: ${info.issueDate}"
         addressText.text = "주소: ${info.address.ifEmpty { "정보 없음" }}"
 
