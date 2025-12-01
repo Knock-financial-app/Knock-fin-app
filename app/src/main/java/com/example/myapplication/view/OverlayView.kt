@@ -275,4 +275,8 @@ class OverlayView @JvmOverloads constructor(
             canvas.drawText(line, padding, padding + (index + 1) * lineHeight - 6f, debugPaint)
         }
     }
+
+    fun getGuideRect(): RectF {
+        return calculateGuideRect()
+    }
 }

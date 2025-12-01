@@ -77,6 +77,25 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         private const val GUIDE_MATCH_THRESHOLD = 0.90f
         private const val STABILITY_THRESHOLD = 0.08f
         private const val CARD_ASPECT_RATIO = 1.585f
+        private var smoothedCardRect: Rect? = null
+        private val SMOOTHING_FACTOR = 0.3f
+        private const val ID_TYPE_UNKNOWN = 0
+        private const val ID_TYPE_RESIDENT = 1
+        private const val ID_TYPE_DRIVER = 2
+        private const val RESIDENT_TEXT_WIDTH_RATIO = 0.45f
+        private const val RESIDENT_TEXT_HEIGHT_RATIO = 0.55f
+        private const val RESIDENT_PHOTO_WIDTH_RATIO = 0.30f
+        private const val DRIVER_TEXT_WIDTH_RATIO = 0.55f
+        private const val DRIVER_TEXT_HEIGHT_RATIO = 0.65f
+        private const val DRIVER_PHOTO_WIDTH_RATIO = 0.25f
+        private val RESIDENT_KEYWORDS = listOf(
+            "주민등록증", "RESIDENT", "REGISTRATION", "주민번호"
+        )
+        private val DRIVER_KEYWORDS = listOf(
+            "운전면허증", "운전면허", "DRIVER", "LICENSE", "면허번호",
+            "적성검사", "갱신기간", "조건", "면허"
+        )
+
         private val DRIVER_LICENSE_NUMBER_PATTERN = Regex("\\d{2}[- ]?\\d{2}[- ]?\\d{6}[- ]?\\d{2}")
         private val RESIDENT_NUMBER_PATTERN = Regex("\\d{6}[- ]?[1-4]\\d{6}")
         private val NAME_PATTERN = Regex("[가-힣]{2,4}")
@@ -199,12 +218,18 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             return
         }
 
+        val idType = detectIdCardType(fullText)
         val idCardScore = calculateIdCardScore(fullText)
         val isIdCard = idCardScore >= 2
 
         if (shouldLog) {
+            val typeName = when (idType) {
+                ID_TYPE_RESIDENT -> "주민등록증"
+                ID_TYPE_DRIVER -> "운전면허증"
+                else -> "미확인"
+            }
             Log.d(TAG, "텍스트: ${fullText.take(50)}...")
-            Log.d(TAG, "신분증 점수: $idCardScore, 인식: $isIdCard")
+            Log.d(TAG, "신분증 유형: $typeName, 점수: $idCardScore")
         }
 
         if (!isIdCard) {
@@ -219,19 +244,20 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         }
 
         val guideRect = calculateGuideRect(rotatedWidth, rotatedHeight)
-
         val textBounds = calculateTextBounds(textBlocks)
-
-        val cardRect = expandToCardRatio(textBounds, guideRect, rotatedWidth, rotatedHeight)
-
+        val cardRect = when (idType) {
+            ID_TYPE_RESIDENT -> expandForResidentCard(textBounds, rotatedWidth, rotatedHeight)
+            ID_TYPE_DRIVER -> expandForDriverLicense(textBounds, rotatedWidth, rotatedHeight)
+            else -> expandToCardRatio(textBounds, guideRect, rotatedWidth, rotatedHeight)
+        }
         if (shouldLog) {
             Log.d(TAG, "이미지 크기: ${rotatedWidth}x${rotatedHeight}")
             Log.d(TAG, "가이드 영역: $guideRect")
             Log.d(TAG, "텍스트 영역: $textBounds")
             Log.d(TAG, "카드 영역: $cardRect")
         }
-
-        val matchResult = calculateGuideMatch(cardRect, guideRect)
+        val smoothedRect = smoothRect(cardRect)
+        val matchResult = calculateGuideMatch(smoothedRect, guideRect)
 
         if (shouldLog) {
             Log.d(TAG, "매칭 - 내부: ${(matchResult.insideRatio * 100).toInt()}%, 채움: ${(matchResult.fillRatio * 100).toInt()}%")
@@ -239,12 +265,17 @@ class IdCardRecognitionActivity : AppCompatActivity() {
 
         val isInsideGuide = matchResult.insideRatio >= GUIDE_MATCH_THRESHOLD
         val isStable = isStablePosition(cardRect)
-
-        val isValidFrame = isIdCard && isInsideGuide && matchResult.fillRatio >= 0.95f && isStable
+        val isValidFrame = isIdCard && isInsideGuide && matchResult.fillRatio >= 0.9f && isStable
 
         triggerHapticFeedback(isIdCard, matchResult.fillRatio)
 
         val fillPercent = (matchResult.fillRatio * 100).toInt()
+        val idTypeName = when (idType) {
+            ID_TYPE_RESIDENT -> "주민등록증"
+            ID_TYPE_DRIVER -> "운전면허증"
+            else -> "신분증"
+        }
+
         val statusMessage = when {
             isValidFrame -> "완벽해요! 유지하세요 ($validFrameCount/$REQUIRED_VALID_FRAMES)"
             fillPercent >= 90 -> "거의 다 됐어요! ($fillPercent%)"
@@ -256,18 +287,22 @@ class IdCardRecognitionActivity : AppCompatActivity() {
 
         val guideColor = when {
             isValidFrame -> android.graphics.Color.GREEN
-            fillPercent >= 90 -> android.graphics.Color.rgb(150, 255, 0)   // 연두
+            fillPercent >= 90 -> android.graphics.Color.rgb(150, 255, 0)
             fillPercent >= 80 -> android.graphics.Color.YELLOW
-            fillPercent >= 70 -> android.graphics.Color.rgb(255, 200, 0)   // 주황-노랑
-            isIdCard -> android.graphics.Color.rgb(255, 140, 0)            // 주황
+            fillPercent >= 70 -> android.graphics.Color.rgb(255, 200, 0)
+            isIdCard -> android.graphics.Color.rgb(255, 140, 0)
             else -> android.graphics.Color.WHITE
         }
-
+        val debugIdType = when (idType) {
+            ID_TYPE_RESIDENT -> "주민"
+            ID_TYPE_DRIVER -> "면허"
+            else -> "?"
+        }
         runOnUiThread {
             statusText.text = statusMessage
             overlayView.setGuideColor(guideColor)
-            overlayView.setDebugText("채움:${fillPercent}% Lv:$currentHapticLevel 연속:$validFrameCount")
-            overlayView.setDetectedRect(cardRect, rotatedWidth, rotatedHeight, 0)
+            overlayView.setDebugText("[$debugIdType] 채움:${fillPercent}% 연속:$validFrameCount")
+            overlayView.setDetectedRect(smoothedRect, rotatedWidth, rotatedHeight, 0)
         }
 
         if (isValidFrame) {
@@ -277,14 +312,14 @@ class IdCardRecognitionActivity : AppCompatActivity() {
 
             if (validFrameCount == REQUIRED_VALID_FRAMES - 1) {
                 lastValidBitmap?.recycle()
-                lastValidBitmap = cropGuideArea(imageProxy, guideRect)
+                lastValidBitmap = cropGuideArea(imageProxy)
             }
 
             if (validFrameCount >= REQUIRED_VALID_FRAMES) {
                 isProcessing = true
 
                 if (lastValidBitmap == null) {
-                    lastValidBitmap = cropGuideArea(imageProxy, guideRect)
+                    lastValidBitmap = cropGuideArea(imageProxy)
                 }
 
                 Log.d(TAG, "★★★ 인식 완료! ★★★")
@@ -298,6 +333,125 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         }
 
         imageProxy.close()
+    }
+
+    private fun smoothRect(newRect: Rect): Rect {
+        val prevRect = smoothedCardRect
+
+        if (prevRect == null || prevRect.isEmpty) {
+            smoothedCardRect = Rect(newRect)
+            return newRect
+        }
+
+        val centerDiff = kotlin.math.abs(newRect.centerX() - prevRect.centerX()) +
+                kotlin.math.abs(newRect.centerY() - prevRect.centerY())
+        val avgSize = (prevRect.width() + prevRect.height()) / 2f
+
+        if (avgSize > 0 && centerDiff / avgSize > 0.3f) {
+            smoothedCardRect = Rect(newRect)
+            return newRect
+        }
+
+        val smoothedLeft = lerp(prevRect.left, newRect.left, SMOOTHING_FACTOR)
+        val smoothedTop = lerp(prevRect.top, newRect.top, SMOOTHING_FACTOR)
+        val smoothedRight = lerp(prevRect.right, newRect.right, SMOOTHING_FACTOR)
+        val smoothedBottom = lerp(prevRect.bottom, newRect.bottom, SMOOTHING_FACTOR)
+
+        val result = Rect(smoothedLeft, smoothedTop, smoothedRight, smoothedBottom)
+        smoothedCardRect = result
+        return result
+    }
+
+    private fun lerp(start: Int, end: Int, factor: Float): Int {
+        return (start + (end - start) * factor).toInt()
+    }
+
+    private fun detectIdCardType(text: String): Int {
+        val upperText = text.uppercase()
+
+        val driverScore = DRIVER_KEYWORDS.count { keyword ->
+            text.contains(keyword, ignoreCase = true) || upperText.contains(keyword.uppercase())
+        }
+
+        val residentScore = RESIDENT_KEYWORDS.count { keyword ->
+            text.contains(keyword, ignoreCase = true) || upperText.contains(keyword.uppercase())
+        }
+
+        val hasDriverLicenseNumber = DRIVER_LICENSE_NUMBER_PATTERN.containsMatchIn(text)
+
+        return when {
+            hasDriverLicenseNumber -> ID_TYPE_DRIVER
+            driverScore >= 2 -> ID_TYPE_DRIVER
+            residentScore >= 1 -> ID_TYPE_RESIDENT
+            driverScore >= 1 -> ID_TYPE_DRIVER
+            else -> ID_TYPE_UNKNOWN
+        }
+    }
+
+    private fun expandForResidentCard(
+        textBounds: Rect,
+        imageWidth: Int,
+        imageHeight: Int
+    ): Rect {
+        if (textBounds.isEmpty) return Rect()
+
+        val textWidth = textBounds.width().toFloat()
+        val textHeight = textBounds.height().toFloat()
+
+        val estimatedCardWidth = textWidth / RESIDENT_TEXT_WIDTH_RATIO
+        val estimatedCardHeightFromText = textHeight / RESIDENT_TEXT_HEIGHT_RATIO
+        val estimatedCardHeightFromRatio = estimatedCardWidth / CARD_ASPECT_RATIO
+
+        val finalHeight = max(estimatedCardHeightFromText, estimatedCardHeightFromRatio)
+        val finalWidth = finalHeight * CARD_ASPECT_RATIO
+
+        val cardRight = textBounds.right + (finalWidth * RESIDENT_PHOTO_WIDTH_RATIO)
+        val cardCenterY = textBounds.centerY().toFloat()
+
+        val left = (cardRight - finalWidth).toInt()
+        val top = (cardCenterY - finalHeight / 2).toInt()
+        val right = cardRight.toInt()
+        val bottom = (cardCenterY + finalHeight / 2).toInt()
+
+        return Rect(
+            max(0, left),
+            max(0, top),
+            min(imageWidth, right),
+            min(imageHeight, bottom)
+        )
+    }
+
+    private fun expandForDriverLicense(
+        textBounds: Rect,
+        imageWidth: Int,
+        imageHeight: Int
+    ): Rect {
+        if (textBounds.isEmpty) return Rect()
+
+        val textWidth = textBounds.width().toFloat()
+        val textHeight = textBounds.height().toFloat()
+
+        val estimatedCardWidth = textWidth / DRIVER_TEXT_WIDTH_RATIO
+        val estimatedCardHeightFromText = textHeight / DRIVER_TEXT_HEIGHT_RATIO
+        val estimatedCardHeightFromRatio = estimatedCardWidth / CARD_ASPECT_RATIO
+
+        val finalHeight = max(estimatedCardHeightFromText, estimatedCardHeightFromRatio)
+        val finalWidth = finalHeight * CARD_ASPECT_RATIO
+
+        val cardLeft = textBounds.left - (finalWidth * DRIVER_PHOTO_WIDTH_RATIO)
+        val cardCenterY = textBounds.centerY().toFloat()
+
+        val left = cardLeft.toInt()
+        val top = (cardCenterY - finalHeight / 2).toInt()
+        val right = (cardLeft + finalWidth).toInt()
+        val bottom = (cardCenterY + finalHeight / 2).toInt()
+
+        return Rect(
+            max(0, left),
+            max(0, top),
+            min(imageWidth, right),
+            min(imageHeight, bottom)
+        )
     }
 
     private fun calculateTextBounds(textBlocks: List<Text.TextBlock>): Rect {
@@ -410,6 +564,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
     private fun handleInvalidFrame(message: String) {
         if (validFrameCount > 0) validFrameCount--
 
+        smoothedCardRect = null
         stopHapticFeedback()
 
         runOnUiThread {
@@ -492,13 +647,52 @@ class IdCardRecognitionActivity : AppCompatActivity() {
     }
 
     @androidx.camera.core.ExperimentalGetImage
-    private fun cropGuideArea(imageProxy: ImageProxy, guideRect: Rect): Bitmap? {
+    private fun cropGuideArea(imageProxy: ImageProxy): Bitmap? {
         return try {
             val fullBitmap = imageProxyToBitmap(imageProxy) ?: return null
-            val cropLeft = max(0, guideRect.left)
-            val cropTop = max(0, guideRect.top)
-            val cropRight = min(fullBitmap.width, guideRect.right)
-            val cropBottom = min(fullBitmap.height, guideRect.bottom)
+
+            val viewGuideRect = overlayView.getGuideRect()
+
+            val viewWidth = overlayView.width.toFloat()
+            val viewHeight = overlayView.height.toFloat()
+            val bitmapWidth = fullBitmap.width.toFloat()
+            val bitmapHeight = fullBitmap.height.toFloat()
+
+            if (viewWidth <= 0 || viewHeight <= 0) {
+                return fullBitmap
+            }
+
+            val viewAspect = viewWidth / viewHeight
+            val bitmapAspect = bitmapWidth / bitmapHeight
+
+            val scale: Float
+            val offsetX: Float
+            val offsetY: Float
+
+            if (bitmapAspect > viewAspect) {
+                scale = bitmapHeight / viewHeight
+                offsetX = (bitmapWidth - viewWidth * scale) / 2f
+                offsetY = 0f
+            } else {
+                scale = bitmapWidth / viewWidth
+                offsetX = 0f
+                offsetY = (bitmapHeight - viewHeight * scale) / 2f
+            }
+
+            val CROP_PADDING_RATIO = 0.15f
+
+            val paddingX = viewGuideRect.width() * CROP_PADDING_RATIO
+            val paddingY = viewGuideRect.height() * CROP_PADDING_RATIO
+
+            val imageLeft = ((viewGuideRect.left - paddingX) * scale + offsetX).toInt()
+            val imageTop = ((viewGuideRect.top - paddingY) * scale + offsetY).toInt()
+            val imageRight = ((viewGuideRect.right + paddingX) * scale + offsetX).toInt()
+            val imageBottom = ((viewGuideRect.bottom + paddingY) * scale + offsetY).toInt()
+
+            val cropLeft = maxOf(0, imageLeft)
+            val cropTop = maxOf(0, imageTop)
+            val cropRight = minOf(fullBitmap.width, imageRight)
+            val cropBottom = minOf(fullBitmap.height, imageBottom)
 
             val cropWidth = cropRight - cropLeft
             val cropHeight = cropBottom - cropTop
@@ -508,11 +702,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             }
 
             val croppedBitmap = Bitmap.createBitmap(
-                fullBitmap,
-                cropLeft,
-                cropTop,
-                cropWidth,
-                cropHeight
+                fullBitmap, cropLeft, cropTop, cropWidth, cropHeight
             )
 
             if (croppedBitmap != fullBitmap) {
@@ -520,7 +710,6 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             }
 
             croppedBitmap
-
         } catch (e: Exception) {
             Log.e(TAG, "크롭 실패: ${e.message}", e)
             null
@@ -649,6 +838,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         isProcessing = false
         validFrameCount = 0
         lastDetectedRect = null
+        smoothedCardRect = null
         lastValidText = ""
         lastValidBitmap?.recycle()
         lastValidBitmap = null
