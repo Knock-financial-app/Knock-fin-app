@@ -16,6 +16,9 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.util.Log
+import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityManager
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -27,6 +30,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
+import com.example.myapplication.ui.main.MainActivity
 import com.example.myapplication.view.OverlayView
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
@@ -51,9 +55,9 @@ class IdCardRecognitionActivity : AppCompatActivity() {
 
     private lateinit var previewView: PreviewView
     private lateinit var overlayView: OverlayView
-    private lateinit var statusText: TextView
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var textRecognizer: TextRecognizer
+    private lateinit var cancelBtn: ImageView
     private var isProcessing = false
     private var recognitionCompleted = false
     private var validFrameCount = 0
@@ -67,7 +71,9 @@ class IdCardRecognitionActivity : AppCompatActivity() {
     private var analysisWidth = 0
     private var analysisHeight = 0
     private var analysisRotation = 0
-
+    private var lastAnnouncedMessage: String = ""
+    private var lastAnnounceTime: Long = 0L
+    private val ANNOUNCE_INTERVAL = 2000L
     companion object {
         private const val TAG = "IdCardRecog"
         private const val REQUEST_CODE_PERMISSIONS = 10
@@ -117,8 +123,15 @@ class IdCardRecognitionActivity : AppCompatActivity() {
 
         previewView = findViewById(R.id.previewView)
         overlayView = findViewById(R.id.overlayView)
-        statusText = findViewById(R.id.statusText)
+        cancelBtn = findViewById(R.id.cancel_button)
 
+        cancelBtn.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            startActivity(intent)
+            finish()
+        }
         cameraExecutor = Executors.newSingleThreadExecutor()
         initVibrator()
 
@@ -281,7 +294,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         }
 
         val statusMessage = when {
-            isValidFrame -> "ⓘ 신분증이 중심에 들어왔습니다. \n" +
+            isValidFrame -> "ⓘ 신분증이 중심에 들어왔습니다. "  + "\n" +
                     "촬영 중이니 움직이지 마십시오."
             else -> analyzePosition(smoothedRect, guideRect)
             }
@@ -299,7 +312,11 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         val confirmStatus = if (confirmedIdType != ID_TYPE_UNKNOWN) "✓" else "${idTypeHistory.size}/$ID_TYPE_CONFIRM_THRESHOLD"
 
         runOnUiThread {
-            statusText.text = statusMessage
+            val shouldAnnounce = statusMessage != overlayView.checkMessage()
+            overlayView.setStatusMessage(statusMessage)
+            if (shouldAnnounce && (isValidFrame || statusMessage.contains("이동하세요"))) {
+                announceForAccessibility(statusMessage)
+            }
             overlayView.setGuideColor(guideColor)
             overlayView.setDebugText("[$debugIdType$confirmStatus] 채움:${fillPercent}% 연속:$validFrameCount")
             overlayView.setDetectedRect(smoothedRect, rotatedWidth, rotatedHeight, 0)
@@ -333,6 +350,43 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         }
 
         imageProxy.close()
+    }
+
+    private fun announceForAccessibility(message: String, force: Boolean = false) {
+        if (message.isEmpty()) return
+
+        val currentTime = System.currentTimeMillis()
+
+        // 같은 메시지이고 간격이 짧으면 스킵 (force가 아닌 경우)
+        if (!force && message == lastAnnouncedMessage &&
+            currentTime - lastAnnounceTime < ANNOUNCE_INTERVAL) {
+            return
+        }
+
+        val accessibilityManager = getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
+
+        if (accessibilityManager?.isEnabled == true) {
+            val event = AccessibilityEvent.obtain().apply {
+                eventType = AccessibilityEvent.TYPE_ANNOUNCEMENT
+                className = javaClass.name
+                packageName = packageName
+                text.add(message)
+            }
+            accessibilityManager.sendAccessibilityEvent(event)
+
+            lastAnnouncedMessage = message
+            lastAnnounceTime = currentTime
+        }
+    }
+
+    // 상태 텍스트 업데이트 + 접근성 알림
+    private fun updateStatusText(message: String, announceImportant: Boolean = false) {
+        runOnUiThread {
+            overlayView.setStatusMessage(message)
+            if (announceImportant) {
+                announceForAccessibility(message)
+            }
+        }
     }
 
     private fun updateIdTypeHistory(detectedType: Int) {
@@ -690,7 +744,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         }
 
         runOnUiThread {
-            statusText.text = message
+            overlayView.setStatusMessage(message)
             overlayView.clearDetection()
             overlayView.setGuideColor(android.graphics.Color.WHITE)
         }
@@ -904,7 +958,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
 
     private fun processAndSaveIdCard(fullText: String, bitmap: Bitmap?) {
         lifecycleScope.launch {
-            runOnUiThread { statusText.text = "저장 중..." }
+            updateStatusText("저장 중...", announceImportant = true)
 
             val imagePath = withContext(Dispatchers.IO) { saveImage(bitmap) }
 
@@ -920,7 +974,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
                 recognitionCompleted = true
                 navigateToResult(idCardInfo)
             } else {
-                runOnUiThread { statusText.text = "정보 추출 실패. 다시 시도하세요." }
+                updateStatusText("정보 추출 실패. 다시 시도하세요.", announceImportant = true)
                 resetProcessing()
             }
         }
@@ -948,10 +1002,13 @@ class IdCardRecognitionActivity : AppCompatActivity() {
 
     private fun extractIdCardInfo(text: String): IdCardInfo {
         return IdCardInfo().apply {
-            driverLicenseNumber = DRIVER_LICENSE_NUMBER_PATTERN.find(text)?.value?.replace(" ", "") ?: ""
-            residentNumber = RESIDENT_NUMBER_PATTERN.find(text)?.value?.replace(" ", "") ?: ""
+            driverLicenseNumber = DRIVER_LICENSE_NUMBER_PATTERN.find(text)?.value
+                ?.replace(Regex("[^0-9]"), "") ?: ""
+            residentNumber = RESIDENT_NUMBER_PATTERN.find(text)?.value
+                ?.replace(Regex("[^0-9]"), "") ?: ""
+            issueDate = Regex("\\d{4}[./-]\\d{1,2}[./-]\\d{1,2}").find(text)?.value
+                ?.replace(Regex("[^0-9]"), "") ?: ""
             name = extractName(text)
-            issueDate = Regex("\\d{4}[./-]\\d{1,2}[./-]\\d{1,2}").find(text)?.value ?: ""
             address = Regex("([가-힣]+(?:시|도))[\\s]*[가-힣]+").find(text)?.value ?: ""
             idType = when (confirmedIdType) {
                 ID_TYPE_RESIDENT -> "resident"
