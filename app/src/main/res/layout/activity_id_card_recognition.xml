@@ -17,35 +17,15 @@
         android:id="@+id/overlayView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
-    <!-- 상태 텍스트 -->
-    <TextView
-        android:id="@+id/statusText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="신분증을 카드 영역에 맞춰주세요"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:background="#80000000"
-        android:padding="16dp"
-        android:layout_margin="16dp"
-        app:layout_constraintTop_toTopOf="parent"
+    <ImageView
+        android:id="@+id/cancel_button"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_cancel"
+        android:layout_margin="30dp"
+        android:tint="@color/white"
+        android:clickable="true"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- 결과 텍스트 -->
-    <TextView
-        android:id="@+id/resultText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:background="#80000000"
-        android:padding="16dp"
-        android:layout_margin="16dp"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
