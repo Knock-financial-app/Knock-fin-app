@@ -79,7 +79,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
 
-        private const val REQUIRED_VALID_FRAMES = 5
+        private const val REQUIRED_VALID_FRAMES = 3
         private const val GUIDE_MATCH_THRESHOLD = 0.90f
         private const val STABILITY_THRESHOLD = 0.08f
         private const val CARD_ASPECT_RATIO = 1.585f
@@ -104,7 +104,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             "운전면허증", "운전면허", "DRIVER", "LICENSE", "면허번호",
             "적성검사", "갱신기간", "조건", "면허"
         )
-        private val EXCLUDE_NAME_WORDS = listOf("주민등록증", "면허",
+        private val EXCLUDE_NAME_WORDS = listOf("주민등록증", "주민", "면허",
             "주민등록", "주민번호", "등록증", "운전면허", "면허증", "자동차",
             "대한민국", "경찰청장", "도지사", "시장", "군수", "구청장",
             "발급일", "생년월일", "주소지", "적성검사", "갱신기간",
@@ -282,7 +282,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
 
         val isInsideGuide = matchResult.insideRatio >= GUIDE_MATCH_THRESHOLD
         val isStable = isStablePosition(cardRect)
-        val isValidFrame = isIdCard && isInsideGuide && matchResult.fillRatio >= 0.9f && isStable
+        val isValidFrame = isIdCard && isInsideGuide && matchResult.fillRatio >= 0.9f && isStable && confirmedIdType != ID_TYPE_UNKNOWN
 
         triggerHapticFeedback(isIdCard, hapticScore)
 
@@ -1013,7 +1013,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             idType = when (confirmedIdType) {
                 ID_TYPE_RESIDENT -> "resident"
                 ID_TYPE_DRIVER -> "driver"
-                else -> "unknown"
+                else -> "resident"
             }
         }
     }

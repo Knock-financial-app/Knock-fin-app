@@ -1,28 +1,59 @@
 package com.example.myapplication.ui.main
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
+import androidx.fragment.app.Fragment
 import com.example.myapplication.R
-import com.example.myapplication.ui.idcard.CreateAccountActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var createAccount: CardView
+
+    private lateinit var bottomNavigation: BottomNavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        createAccount = findViewById(R.id.create_account)
-        createAccount.setOnClickListener {
-            startActivity(Intent(this, CreateAccountActivity::class.java))
+
+        bottomNavigation = findViewById(R.id.bottomNavigation)
+
+        if (savedInstanceState == null) {
+            loadFragment(HomeFragment())
         }
 
-//        cameraButton = findViewById(R.id.camera_button)
-//        cameraButton.setOnClickListener {
-//            val intent = Intent(this, IdCardRecognitionActivity::class.java)
-//            startActivity(intent)
-//        }
+        bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_home -> {
+                    loadFragment(HomeFragment())
+                    true
+                }
+                R.id.nav_heart -> {
+                    loadFragment(PreparingFragment())
+                    true
+                }
+                R.id.nav_piggy_bank -> {
+                    loadFragment(PreparingFragment())
+                    true
+                }
+                R.id.nav_chart -> {
+                    loadFragment(PreparingFragment())
+                    true
+                }
+                R.id.nav_menu -> {
+                    loadFragment(PreparingFragment())
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun loadFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .setCustomAnimations(
+                R.anim.fast_fade_in,
+                R.anim.fast_fade_out
+            )
+            .replace(R.id.fragmentContainer, fragment)
+            .commit()
     }
 }
