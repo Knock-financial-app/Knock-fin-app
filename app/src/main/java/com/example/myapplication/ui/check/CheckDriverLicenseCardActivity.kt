@@ -13,17 +13,22 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
 import com.example.myapplication.ui.main.MainActivity
+import com.example.myapplication.ui.recheck.RecheckDriverNumberActivity
 import com.example.myapplication.ui.recheck.RecheckIssueDateActivity
 import com.example.myapplication.ui.recheck.RecheckNameActivity
 import java.io.File
-import kotlin.jvm.java
 
-class CheckResidentRegistrationCardActivity : AppCompatActivity() {
+class CheckDriverLicenseCardActivity : AppCompatActivity() {
     private lateinit var ivIdCard: ImageView
     private lateinit var nameTextView: TextView
     private lateinit var nameClickOverlay: View
     private lateinit var rrnFrontTextView: TextView
     private lateinit var rrnBackFirstTextView: TextView
+    private lateinit var licenseNum1: TextView
+    private lateinit var licenseNum2: TextView
+    private lateinit var licenseNum3: TextView
+    private lateinit var licenseNum4: TextView
+    private lateinit var driverClickOverlay: View
     private lateinit var yearTextView: TextView
     private lateinit var monthTextView: TextView
     private lateinit var dayTextView: TextView
@@ -34,13 +39,18 @@ class CheckResidentRegistrationCardActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_check_resident_registration_card)
+        setContentView(R.layout.activity_check_driver_license_card)
 
         ivIdCard = findViewById(R.id.IvIdCard)
         nameTextView = findViewById(R.id.NameEditText)
         nameClickOverlay = findViewById(R.id.NameClickOverlay)
         rrnFrontTextView = findViewById(R.id.RRNFrontEditText)
         rrnBackFirstTextView = findViewById(R.id.RRNBackFirstEditText)
+        licenseNum1 = findViewById(R.id.LicenseNum1)
+        licenseNum2 = findViewById(R.id.LicenseNum2)
+        licenseNum3 = findViewById(R.id.LicenseNum3)
+        licenseNum4 = findViewById(R.id.LicenseNum4)
+        driverClickOverlay = findViewById(R.id.DriverClickOverlay)
         yearTextView = findViewById(R.id.IssueDateYearTextView)
         monthTextView = findViewById(R.id.IssueDateMonthTextView)
         dayTextView = findViewById(R.id.IssueDateDayTextView)
@@ -49,13 +59,19 @@ class CheckResidentRegistrationCardActivity : AppCompatActivity() {
         reCameraButton = findViewById(R.id.ReCameraButton)
         nextButton = findViewById(R.id.NextButton)
 
+
         nameClickOverlay.setOnClickListener {
             val intent = Intent(this, RecheckNameActivity::class.java)
             startActivity(intent)
         }
 
+        driverClickOverlay.setOnClickListener {
+            val intent = Intent(this, RecheckDriverNumberActivity::class.java)
+            startActivity(intent)        }
+
         issueDateClickOverlay.setOnClickListener {
             val intent = Intent(this, RecheckIssueDateActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
             startActivity(intent)
         }
 
@@ -74,7 +90,6 @@ class CheckResidentRegistrationCardActivity : AppCompatActivity() {
         nextButton.setOnClickListener{
             //TODO 완료페이지로 연결
             val intent = Intent(this, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
             startActivity(intent)
         }
 
@@ -87,7 +102,6 @@ class CheckResidentRegistrationCardActivity : AppCompatActivity() {
     }
 
     private fun loadData() {
-        // 이미지 로드
         val imagePath = IdCardInfo.current.imagePath
         if (imagePath.isNotEmpty()) {
             val file = File(imagePath)
@@ -106,5 +120,11 @@ class CheckResidentRegistrationCardActivity : AppCompatActivity() {
         yearTextView.text = dateFull.take(4)
         monthTextView.text = dateFull.drop(4).take(2)
         dayTextView.text = dateFull.drop(6).take(2)
+
+        val driverFull = IdCardInfo.current.driverLicenseNumber
+        licenseNum1.text = driverFull.take(2)
+        licenseNum2.text = driverFull.drop(2).take(2)
+        licenseNum3.text = driverFull.drop(4).take(6)
+        licenseNum4.text = driverFull.drop(10).take(2)
     }
 }

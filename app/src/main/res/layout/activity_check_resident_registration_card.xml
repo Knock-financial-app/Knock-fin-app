@@ -10,12 +10,12 @@
         android:id="@+id/XButton"
         android:layout_width="20dp"
         android:layout_height="20dp"
-        android:src="@drawable/ic_cancel"
         android:layout_margin="30dp"
-        app:tint="@color/black"
         android:clickable="true"
+        android:src="@drawable/ic_cancel"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/black" />
 
     <!-- 제목 -->
     <TextView
@@ -48,8 +48,8 @@
             android:id="@+id/IvIdCard"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:contentDescription="신분증 이미지" />
+            android:contentDescription="신분증 이미지"
+            android:scaleType="centerCrop" />
 
     </androidx.cardview.widget.CardView>
 
@@ -61,10 +61,10 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="12dp"
         android:layout_marginEnd="24dp"
+        android:lineSpacingExtra="4dp"
         android:text="신분증 정보를 확인하고 직접 수정하거나 재촬영하세요.\n입력된 정보를 누르면 수정할 수 있습니다."
         android:textColor="#888888"
         android:textSize="12sp"
-        android:lineSpacingExtra="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/CardIdImage" />
@@ -83,22 +83,34 @@
         app:layout_constraintTop_toBottomOf="@+id/NoticeText" />
 
     <!-- 이름 입력 -->
-    <EditText
-        android:id="@+id/NameEditText"
+    <FrameLayout
+        android:id="@+id/NameBox"
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:layout_marginStart="24dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="24dp"
         android:background="@drawable/textbox_border"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:textColor="#000000"
-        android:textSize="16sp"
-        android:inputType="text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/NameLabel" />
+        app:layout_constraintTop_toBottomOf="@+id/NameLabel">
+
+        <TextView
+            android:id="@+id/NameEditText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="#000000"
+            android:textSize="16sp" />
+
+        <View
+            android:id="@+id/NameClickOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
 
     <!-- 주민등록번호 라벨 -->
     <TextView
@@ -111,9 +123,9 @@
         android:textColor="#888888"
         android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/NameEditText" />
+        app:layout_constraintTop_toBottomOf="@+id/NameBox" />
 
-    <!-- 주민등록번호 박스 (하나의 테두리 안에 여러 필드) -->
+    <!-- 주민등록번호 박스 -->
     <LinearLayout
         android:id="@+id/RRNBox"
         android:layout_width="0dp"
@@ -130,16 +142,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/RRNLabel">
 
-        <!-- 앞자리 6자리 -->
-        <EditText
+        <TextView
             android:id="@+id/RRNFrontEditText"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@null"
             android:gravity="center"
-            android:inputType="number"
-            android:maxLength="6"
             android:textColor="#000000"
             android:textSize="16sp" />
 
@@ -150,19 +158,14 @@
             android:textColor="#000000"
             android:textSize="18sp" />
 
-        <!-- 뒷자리 첫번째 1자리 -->
-        <EditText
+        <TextView
             android:id="@+id/RRNBackFirstEditText"
             android:layout_width="30dp"
             android:layout_height="match_parent"
-            android:background="@null"
             android:gravity="center"
-            android:inputType="number"
-            android:maxLength="1"
             android:textColor="#000000"
             android:textSize="16sp" />
 
-        <!-- 나머지 뒷자리 마스킹 -->
         <TextView
             android:id="@+id/RRNBackMasked"
             android:layout_width="0dp"
@@ -188,8 +191,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/RRNBox" />
 
-    <!-- 발급일자 박스 (하나의 테두리 안에 년/월/일) -->
-    <LinearLayout
+    <!-- 발급일자 박스 -->
+    <FrameLayout
         android:id="@+id/IssueDateBox"
         android:layout_width="0dp"
         android:layout_height="48dp"
@@ -197,71 +200,70 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="24dp"
         android:background="@drawable/textbox_border"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/IssueDateLabel">
 
-        <!-- 년도 -->
-        <EditText
-            android:id="@+id/IssueDateYearEditText"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1.5"
-            android:background="@null"
-            android:gravity="center"
-            android:hint="YYYY"
-            android:inputType="number"
-            android:maxLength="4"
-            android:textColor="#000000"
-            android:textSize="16sp" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="."
-            android:textColor="#000000"
-            android:textSize="18sp" />
+            <TextView
+                android:id="@+id/IssueDateYearTextView"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.5"
+                android:gravity="center"
+                android:hint="YYYY"
+                android:textColor="#000000"
+                android:textSize="16sp" />
 
-        <!-- 월 -->
-        <EditText
-            android:id="@+id/IssueDateMonthEditText"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@null"
-            android:gravity="center"
-            android:hint="MM"
-            android:inputType="number"
-            android:maxLength="2"
-            android:textColor="#000000"
-            android:textSize="16sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="."
+                android:textColor="#000000"
+                android:textSize="18sp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="."
-            android:textColor="#000000"
-            android:textSize="18sp" />
+            <TextView
+                android:id="@+id/IssueDateMonthTextView"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:hint="MM"
+                android:textColor="#000000"
+                android:textSize="16sp" />
 
-        <!-- 일 -->
-        <EditText
-            android:id="@+id/IssueDateDayEditText"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@null"
-            android:gravity="center"
-            android:hint="DD"
-            android:inputType="number"
-            android:maxLength="2"
-            android:textColor="#000000"
-            android:textSize="16sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="."
+                android:textColor="#000000"
+                android:textSize="18sp" />
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/IssueDateDayTextView"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:hint="DD"
+                android:textColor="#000000"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
+        <View
+            android:id="@+id/IssueDateClickOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
 
     <!-- 재촬영 버튼 -->
     <Button

@@ -1,24 +1,19 @@
 package com.example.myapplication.ui.check
 
-import android.R.attr.name
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
-import com.example.myapplication.ui.main.MainActivity
-import com.google.android.material.internal.ViewUtils.showKeyboard
 
 class CheckResidentNumberActivity : AppCompatActivity() {
     private lateinit var rrnFrontTextbox : EditText
     private lateinit var rrnBackFirstDigit : EditText
-    private var rrnBackFull: String = ""
     private lateinit var prevButton : Button
     private lateinit var nextButton : Button
     private lateinit var reCameraButton: Button
@@ -36,7 +31,11 @@ class CheckResidentNumberActivity : AppCompatActivity() {
         rrnFrontTextbox.isEnabled = false
         rrnBackFirstDigit.isEnabled = false
 
+        val isResidentaCard = IdCardInfo.current.isResidentCard()
+        val isDriverLicense = IdCardInfo.current.isDriverLicense()
+
         prevButton.setOnClickListener{
+            saveResidentNumber()
             val intent = Intent(this, CheckNameActivity::class.java)
             startActivity(intent)
         }
@@ -47,10 +46,18 @@ class CheckResidentNumberActivity : AppCompatActivity() {
         }
 
         nextButton.setOnClickListener{
-            //TODO 일단 운전면허번호로 연결함 추후에 민증이면 발급일자로 연결
+            Log.d("IdCardInfo", "isResidentCard: ${IdCardInfo.current.isResidentCard()}")
+            Log.d("IdCardInfo", "isDriverLicense: ${IdCardInfo.current.isDriverLicense()}")
+
             saveResidentNumber()
-            val intent = Intent(this, CheckDriverActivity::class.java)
-            startActivity(intent)
+            if (isResidentaCard) {
+                val intent = Intent(this, CheckIssueDateActivity::class.java)
+                startActivity(intent)
+            }
+            else if (isDriverLicense) {
+                val intent = Intent(this, CheckDriverNumberActivity::class.java)
+                startActivity(intent)
+            }
         }
 
         val rrnFull = IdCardInfo.current.residentNumber

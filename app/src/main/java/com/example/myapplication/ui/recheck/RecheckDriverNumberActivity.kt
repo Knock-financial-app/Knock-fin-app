@@ -1,20 +1,20 @@
-package com.example.myapplication.ui.check
+package com.example.myapplication.ui.recheck
 
-import android.R.attr.name
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
-import com.google.android.material.internal.ViewUtils.showKeyboard
+import com.example.myapplication.ui.check.CheckDriverLicenseCardActivity
+import com.example.myapplication.ui.check.CheckIssueDateActivity
+import com.example.myapplication.ui.check.CheckResidentNumberActivity
+import com.example.myapplication.ui.check.CheckResidentRegistrationCardActivity
 
-class CheckDriverActivity : AppCompatActivity() {
+class RecheckDriverNumberActivity : AppCompatActivity() {
     private lateinit var licenseNum1: EditText
     private lateinit var licenseNum2: EditText
     private lateinit var licenseNum3: EditText
@@ -25,7 +25,7 @@ class CheckDriverActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_check_driver)
+        setContentView(R.layout.activity_recheck_driver_number)
 
         licenseNum1 = findViewById(R.id.LicenseNum1)
         licenseNum2 = findViewById(R.id.LicenseNum2)
@@ -34,6 +34,9 @@ class CheckDriverActivity : AppCompatActivity() {
         prevButton = findViewById<Button>(R.id.PrevButton)
         nextButton = findViewById<Button>(R.id.NextButton)
         reCameraButton = findViewById<Button>(R.id.ReCameraButton)
+
+        val isResidentaCard = IdCardInfo.current.isResidentCard()
+        val isDriverLicense = IdCardInfo.current.isDriverLicense()
 
         licenseNum1.setOnClickListener {
             licenseNum1.requestFocus()
@@ -56,8 +59,15 @@ class CheckDriverActivity : AppCompatActivity() {
         }
 
         prevButton.setOnClickListener{
-            val intent = Intent(this, CheckResidentNumberActivity::class.java)
-            startActivity(intent)
+            saveDriver()
+            if (isResidentaCard) {
+                val intent = Intent(this, CheckResidentRegistrationCardActivity::class.java)
+                startActivity(intent)
+            }
+            else if (isDriverLicense) {
+                val intent = Intent(this, CheckDriverLicenseCardActivity::class.java)
+                startActivity(intent)
+            }
         }
 
         reCameraButton.setOnClickListener{
@@ -67,8 +77,14 @@ class CheckDriverActivity : AppCompatActivity() {
 
         nextButton.setOnClickListener{
             saveDriver()
-            val intent = Intent(this, CheckIssueDateActivity::class.java)
-            startActivity(intent)
+            if (isResidentaCard) {
+                val intent = Intent(this, CheckResidentRegistrationCardActivity::class.java)
+                startActivity(intent)
+            }
+            else if (isDriverLicense) {
+                val intent = Intent(this, CheckDriverLicenseCardActivity::class.java)
+                startActivity(intent)
+            }
         }
 
         val driverFull = IdCardInfo.current.driverLicenseNumber
