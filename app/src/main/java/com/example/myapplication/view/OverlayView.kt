@@ -63,7 +63,7 @@ class OverlayView @JvmOverloads constructor(
     }
 
     private val instructionBgPaint = Paint().apply {
-        color = Color.parseColor("#99666666")
+        color = Color.parseColor("#99C1C1C1")
         style = Paint.Style.FILL
         isAntiAlias = true
     }
@@ -229,8 +229,8 @@ class OverlayView @JvmOverloads constructor(
         val textBounds = Rect()
         instructionTextPaint.getTextBounds(text, 0, text.length, textBounds)
 
-        val paddingH = 40f
-        val paddingV = 20f
+        val paddingH = 60f
+        val paddingV = 40f
         val bgWidth = textBounds.width() + paddingH * 2
         val bgHeight = textBounds.height() + paddingV * 2
 
@@ -238,7 +238,8 @@ class OverlayView @JvmOverloads constructor(
         val bgTop = guideRect.top - bgHeight - 30f
         val bgRect = RectF(bgLeft, bgTop, bgLeft + bgWidth, bgTop + bgHeight)
 
-        canvas.drawRoundRect(bgRect, bgHeight / 2, bgHeight / 2, instructionBgPaint)
+        val cornerRadius = 20f
+        canvas.drawRoundRect(bgRect, cornerRadius, cornerRadius, instructionBgPaint)
 
         val textY = bgRect.centerY() + textBounds.height() / 2f - 4f
         canvas.drawText(text, width / 2f, textY, instructionTextPaint)
@@ -247,10 +248,16 @@ class OverlayView @JvmOverloads constructor(
     private fun drawStatusText(canvas: Canvas, guideRect: RectF) {
         if (statusMessage.isEmpty()) return
 
-        val displayText = "ⓘ $statusMessage"
-        val textY = guideRect.bottom + 80f
+        val lines = statusMessage.split("\n")
+        val lineHeight = statusTextPaint.textSize * 1.4f
 
-        canvas.drawText(displayText, width / 2f, textY, statusTextPaint)
+        var textY = guideRect.bottom + 80f
+
+        for ((index, line) in lines.withIndex()) {
+            val displayText = line
+            canvas.drawText(displayText, width / 2f, textY, statusTextPaint)
+            textY += lineHeight
+        }
     }
 
     private fun drawDetectedPolygon(canvas: Canvas, corners: List<PointF>) {

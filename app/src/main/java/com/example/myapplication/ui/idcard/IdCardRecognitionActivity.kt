@@ -294,7 +294,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         }
 
         val statusMessage = when {
-            isValidFrame -> "ⓘ 신분증이 중심에 들어왔습니다."  + "\n" +
+            isValidFrame -> "ⓘ 신분증이 중심에 들어왔습니다. "  + "\n" +
                     "촬영 중이니 움직이지 마십시오."
             else -> analyzePosition(smoothedRect, guideRect)
             }
@@ -1002,10 +1002,13 @@ class IdCardRecognitionActivity : AppCompatActivity() {
 
     private fun extractIdCardInfo(text: String): IdCardInfo {
         return IdCardInfo().apply {
-            driverLicenseNumber = DRIVER_LICENSE_NUMBER_PATTERN.find(text)?.value?.replace(" ", "") ?: ""
-            residentNumber = RESIDENT_NUMBER_PATTERN.find(text)?.value?.replace(" ", "") ?: ""
+            driverLicenseNumber = DRIVER_LICENSE_NUMBER_PATTERN.find(text)?.value
+                ?.replace(Regex("[^0-9]"), "") ?: ""
+            residentNumber = RESIDENT_NUMBER_PATTERN.find(text)?.value
+                ?.replace(Regex("[^0-9]"), "") ?: ""
+            issueDate = Regex("\\d{4}[./-]\\d{1,2}[./-]\\d{1,2}").find(text)?.value
+                ?.replace(Regex("[^0-9]"), "") ?: ""
             name = extractName(text)
-            issueDate = Regex("\\d{4}[./-]\\d{1,2}[./-]\\d{1,2}").find(text)?.value ?: ""
             address = Regex("([가-힣]+(?:시|도))[\\s]*[가-힣]+").find(text)?.value ?: ""
             idType = when (confirmedIdType) {
                 ID_TYPE_RESIDENT -> "resident"
