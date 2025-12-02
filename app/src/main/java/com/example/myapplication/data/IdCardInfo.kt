@@ -10,9 +10,13 @@ data class IdCardInfo(
     var residentNumber: String = "",
     var issueDate: String = "",
     var address: String = "",
-    var imagePath: String = ""
+    var imagePath: String = "",
+    var idType: String = ""
 ) : Parcelable {
     fun isValid(): Boolean {
-        return name.isNotEmpty() && residentNumber.isNotEmpty()
+        return name.isNotEmpty() && (residentNumber.isNotEmpty() || driverLicenseNumber.isNotEmpty())
     }
+
+    fun isResidentCard(): Boolean = idType == "resident"
+    fun isDriverLicense(): Boolean = idType == "driver"
 }

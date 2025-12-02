@@ -82,6 +82,9 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         private const val ID_TYPE_UNKNOWN = 0
         private const val ID_TYPE_RESIDENT = 1
         private const val ID_TYPE_DRIVER = 2
+        private var idTypeHistory = mutableListOf<Int>()
+        private var confirmedIdType: Int = ID_TYPE_UNKNOWN
+        private val ID_TYPE_CONFIRM_THRESHOLD = 5
         private const val RESIDENT_TEXT_WIDTH_RATIO = 0.45f
         private const val RESIDENT_TEXT_HEIGHT_RATIO = 0.55f
         private const val RESIDENT_PHOTO_WIDTH_RATIO = 0.30f
@@ -95,7 +98,13 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             "운전면허증", "운전면허", "DRIVER", "LICENSE", "면허번호",
             "적성검사", "갱신기간", "조건", "면허"
         )
-
+        private val EXCLUDE_NAME_WORDS = listOf("주민등록증", "면허",
+            "주민등록", "주민번호", "등록증", "운전면허", "면허증", "자동차",
+            "대한민국", "경찰청장", "도지사", "시장", "군수", "구청장",
+            "발급일", "생년월일", "주소지", "적성검사", "갱신기간",
+            "면허번호", "조건", "종류", "보통", "원동기", "대형",
+            "성명", "이름", "주소", "발행", "유효기간", "경찰청"
+        )
         private val DRIVER_LICENSE_NUMBER_PATTERN = Regex("\\d{2}[- ]?\\d{2}[- ]?\\d{6}[- ]?\\d{2}")
         private val RESIDENT_NUMBER_PATTERN = Regex("\\d{6}[- ]?[1-4]\\d{6}")
         private val NAME_PATTERN = Regex("[가-힣]{2,4}")
@@ -218,7 +227,9 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             return
         }
 
-        val idType = detectIdCardType(fullText)
+        val detectedType = detectIdCardType(fullText)
+        updateIdTypeHistory(detectedType)
+        val idType = getConfirmedOrBestType()
         val idCardScore = calculateIdCardScore(fullText)
         val isIdCard = idCardScore >= 2
 
@@ -228,6 +239,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
                 ID_TYPE_DRIVER -> "운전면허증"
                 else -> "미확인"
             }
+            val status = if (confirmedIdType != ID_TYPE_UNKNOWN) "확정" else "감지중(${idTypeHistory.size})"
             Log.d(TAG, "텍스트: ${fullText.take(50)}...")
             Log.d(TAG, "신분증 유형: $typeName, 점수: $idCardScore")
         }
@@ -250,24 +262,16 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             ID_TYPE_DRIVER -> expandForDriverLicense(textBounds, rotatedWidth, rotatedHeight)
             else -> expandToCardRatio(textBounds, guideRect, rotatedWidth, rotatedHeight)
         }
-        if (shouldLog) {
-            Log.d(TAG, "이미지 크기: ${rotatedWidth}x${rotatedHeight}")
-            Log.d(TAG, "가이드 영역: $guideRect")
-            Log.d(TAG, "텍스트 영역: $textBounds")
-            Log.d(TAG, "카드 영역: $cardRect")
-        }
+
         val smoothedRect = smoothRect(cardRect)
         val matchResult = calculateGuideMatch(smoothedRect, guideRect)
-
-        if (shouldLog) {
-            Log.d(TAG, "매칭 - 내부: ${(matchResult.insideRatio * 100).toInt()}%, 채움: ${(matchResult.fillRatio * 100).toInt()}%")
-        }
+        val hapticScore = calculateHapticScore(smoothedRect, guideRect)
 
         val isInsideGuide = matchResult.insideRatio >= GUIDE_MATCH_THRESHOLD
         val isStable = isStablePosition(cardRect)
         val isValidFrame = isIdCard && isInsideGuide && matchResult.fillRatio >= 0.9f && isStable
 
-        triggerHapticFeedback(isIdCard, matchResult.fillRatio)
+        triggerHapticFeedback(isIdCard, hapticScore)
 
         val fillPercent = (matchResult.fillRatio * 100).toInt()
         val idTypeName = when (idType) {
@@ -277,31 +281,27 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         }
 
         val statusMessage = when {
-            isValidFrame -> "완벽해요! 유지하세요 ($validFrameCount/$REQUIRED_VALID_FRAMES)"
-            fillPercent >= 90 -> "거의 다 됐어요! ($fillPercent%)"
-            fillPercent >= 80 -> "조금만 더! ($fillPercent%)"
-            fillPercent >= 70 -> "좋아요, 더 가까이 ($fillPercent%)"
-            isIdCard -> "신분증을 가까이 가져오세요 ($fillPercent%)"
-            else -> "가이드에 맞춰주세요"
+            isValidFrame -> "ⓘ 신분증이 중심에 들어왔습니다. \n" +
+                    "촬영 중이니 움직이지 마십시오."
+            else -> analyzePosition(smoothedRect, guideRect)
+            }
+        val guideColor = if (isIdCard) {
+            android.graphics.Color.parseColor("#FFE621")
+        } else {
+            android.graphics.Color.WHITE
         }
 
-        val guideColor = when {
-            isValidFrame -> android.graphics.Color.GREEN
-            fillPercent >= 90 -> android.graphics.Color.rgb(150, 255, 0)
-            fillPercent >= 80 -> android.graphics.Color.YELLOW
-            fillPercent >= 70 -> android.graphics.Color.rgb(255, 200, 0)
-            isIdCard -> android.graphics.Color.rgb(255, 140, 0)
-            else -> android.graphics.Color.WHITE
-        }
         val debugIdType = when (idType) {
             ID_TYPE_RESIDENT -> "주민"
             ID_TYPE_DRIVER -> "면허"
             else -> "?"
         }
+        val confirmStatus = if (confirmedIdType != ID_TYPE_UNKNOWN) "✓" else "${idTypeHistory.size}/$ID_TYPE_CONFIRM_THRESHOLD"
+
         runOnUiThread {
             statusText.text = statusMessage
             overlayView.setGuideColor(guideColor)
-            overlayView.setDebugText("[$debugIdType] 채움:${fillPercent}% 연속:$validFrameCount")
+            overlayView.setDebugText("[$debugIdType$confirmStatus] 채움:${fillPercent}% 연속:$validFrameCount")
             overlayView.setDetectedRect(smoothedRect, rotatedWidth, rotatedHeight, 0)
         }
 
@@ -334,6 +334,123 @@ class IdCardRecognitionActivity : AppCompatActivity() {
 
         imageProxy.close()
     }
+
+    private fun updateIdTypeHistory(detectedType: Int) {
+        if (confirmedIdType != ID_TYPE_UNKNOWN) return
+        if (detectedType == ID_TYPE_UNKNOWN) return
+
+        idTypeHistory.add(detectedType)
+
+        while (idTypeHistory.size > ID_TYPE_CONFIRM_THRESHOLD * 2) {
+            idTypeHistory.removeAt(0)
+        }
+
+        if (idTypeHistory.size >= ID_TYPE_CONFIRM_THRESHOLD) {
+            val recent = idTypeHistory.takeLast(ID_TYPE_CONFIRM_THRESHOLD)
+            if (recent.all { it == detectedType }) {
+                confirmedIdType = detectedType
+                Log.d(TAG, "★★★ 신분증 종류 확정: ${if (detectedType == ID_TYPE_RESIDENT) "주민등록증" else "운전면허증"} ★★★")
+            }
+        }
+    }
+
+    private fun getConfirmedOrBestType(): Int {
+        if (confirmedIdType != ID_TYPE_UNKNOWN) {
+            return confirmedIdType
+        }
+
+        if (idTypeHistory.isEmpty()) {
+            return ID_TYPE_UNKNOWN
+        }
+
+        val residentCount = idTypeHistory.count { it == ID_TYPE_RESIDENT }
+        val driverCount = idTypeHistory.count { it == ID_TYPE_DRIVER }
+
+        return when {
+            residentCount > driverCount -> ID_TYPE_RESIDENT
+            driverCount > residentCount -> ID_TYPE_DRIVER
+            else -> idTypeHistory.last()
+        }
+    }
+
+    private fun calculateHapticScore(card: Rect, guide: Rect): Float {
+        if (card.isEmpty) return 0f
+
+        val cardArea = card.width().toLong() * card.height()
+        val guideArea = guide.width().toLong() * guide.height()
+
+        if (guideArea == 0L) return 0f
+
+        val sizeRatio = cardArea.toFloat() / guideArea
+
+        val intersection = Rect()
+        if (!intersection.setIntersect(card, guide)) {
+            return 0f
+        }
+
+        val intersectionArea = intersection.width().toLong() * intersection.height()
+        val fillRatio = intersectionArea.toFloat() / guideArea
+
+        return if (sizeRatio > 1.1f) {
+            fillRatio / sizeRatio
+        } else {
+            fillRatio
+        }
+    }
+
+    private fun analyzePosition(cardRect: Rect, guideRect: Rect): String {
+        if (cardRect.isEmpty) return "신분증을 비춰주세요"
+
+        val cardCenterX = cardRect.centerX()
+        val cardCenterY = cardRect.centerY()
+        val guideCenterX = guideRect.centerX()
+        val guideCenterY = guideRect.centerY()
+
+        val guideWidth = guideRect.width()
+        val guideHeight = guideRect.height()
+        val cardWidth = cardRect.width()
+        val cardHeight = cardRect.height()
+
+        val offsetX = (cardCenterX - guideCenterX).toFloat() / guideWidth
+        val offsetY = (cardCenterY - guideCenterY).toFloat() / guideHeight
+
+        val sizeRatio = (cardWidth.toFloat() * cardHeight) / (guideWidth.toFloat() * guideHeight)
+
+        val messages = mutableListOf<String>()
+
+        val OFFSET_THRESHOLD = 0.10f
+
+        when {
+            offsetX < -OFFSET_THRESHOLD -> messages.add("왼쪽으로")
+            offsetX > OFFSET_THRESHOLD -> messages.add("오른쪽으로")
+        }
+
+        when {
+            offsetY < -OFFSET_THRESHOLD -> messages.add("위로")
+            offsetY > OFFSET_THRESHOLD -> messages.add("아래로")
+        }
+
+        when {
+            sizeRatio < 0.7f -> messages.add("더 가까이")
+            sizeRatio > 1.2f -> messages.add("더 멀리")
+        }
+
+        return if (messages.isNotEmpty()) {
+            "휴대폰을 " + messages.joinToString(", ") + " 이동하세요"
+        } else {
+            "잘하고 있어요!"
+        }
+    }
+
+    /*private fun showToastIfNeeded(message: String) {
+        val currentTime = System.currentTimeMillis()
+
+        if (message != lastToastMessage || currentTime - lastToastTime > TOAST_INTERVAL) {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            lastToastMessage = message
+            lastToastTime = currentTime
+        }
+    }*/
 
     private fun smoothRect(newRect: Rect): Rect {
         val prevRect = smoothedCardRect
@@ -566,6 +683,11 @@ class IdCardRecognitionActivity : AppCompatActivity() {
 
         smoothedCardRect = null
         stopHapticFeedback()
+
+        idTypeHistory.clear()
+        if (validFrameCount == 0) {
+            confirmedIdType = ID_TYPE_UNKNOWN
+        }
 
         runOnUiThread {
             statusText.text = message
@@ -828,10 +950,58 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         return IdCardInfo().apply {
             driverLicenseNumber = DRIVER_LICENSE_NUMBER_PATTERN.find(text)?.value?.replace(" ", "") ?: ""
             residentNumber = RESIDENT_NUMBER_PATTERN.find(text)?.value?.replace(" ", "") ?: ""
-            name = NAME_PATTERN.find(text)?.value ?: ""
+            name = extractName(text)
             issueDate = Regex("\\d{4}[./-]\\d{1,2}[./-]\\d{1,2}").find(text)?.value ?: ""
             address = Regex("([가-힣]+(?:시|도))[\\s]*[가-힣]+").find(text)?.value ?: ""
+            idType = when (confirmedIdType) {
+                ID_TYPE_RESIDENT -> "resident"
+                ID_TYPE_DRIVER -> "driver"
+                else -> "unknown"
+            }
         }
+    }
+
+    private fun extractName(text: String): String {
+        val matches = NAME_PATTERN.findAll(text)
+
+        for (match in matches) {
+            val candidate = match.value
+
+            val isExcluded = EXCLUDE_NAME_WORDS.any { excluded ->
+                excluded.contains(candidate) || candidate.contains(excluded)
+            }
+
+            if (!isExcluded) {
+                if (isLikelyName(candidate)) {
+                    return candidate
+                }
+            }
+        }
+
+        for (match in NAME_PATTERN.findAll(text)) {
+            val candidate = match.value
+            val isExcluded = EXCLUDE_NAME_WORDS.any { excluded ->
+                excluded.contains(candidate) || candidate.contains(excluded)
+            }
+            if (!isExcluded) {
+                return candidate
+            }
+        }
+
+        return ""
+    }
+
+    private fun isLikelyName(text: String): Boolean {
+        if (text.length !in 2..4) return false
+
+        val commonSurnames = listOf(
+            "김", "이", "박", "최", "정", "강", "조", "윤", "장", "임",
+            "한", "오", "서", "신", "권", "황", "안", "송", "류", "유",
+            "홍", "전", "고", "문", "양", "손", "배", "백", "허", "남"
+        )
+
+        val firstChar = text.first().toString()
+        return commonSurnames.contains(firstChar)
     }
 
     private fun resetProcessing() {
@@ -842,6 +1012,8 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         lastValidText = ""
         lastValidBitmap?.recycle()
         lastValidBitmap = null
+        idTypeHistory.clear()
+        confirmedIdType = ID_TYPE_UNKNOWN
     }
 
     private fun navigateToResult(idCardInfo: IdCardInfo) {
