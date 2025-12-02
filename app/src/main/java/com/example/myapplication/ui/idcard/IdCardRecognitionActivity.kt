@@ -90,7 +90,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         private const val ID_TYPE_DRIVER = 2
         private var idTypeHistory = mutableListOf<Int>()
         private var confirmedIdType: Int = ID_TYPE_UNKNOWN
-        private val ID_TYPE_CONFIRM_THRESHOLD = 5
+        private val ID_TYPE_CONFIRM_THRESHOLD = 3
         private const val RESIDENT_TEXT_WIDTH_RATIO = 0.45f
         private const val RESIDENT_TEXT_HEIGHT_RATIO = 0.55f
         private const val RESIDENT_PHOTO_WIDTH_RATIO = 0.30f
@@ -158,8 +158,8 @@ class IdCardRecognitionActivity : AppCompatActivity() {
     }
 
     private fun startCamera() {
+        resetProcessing()
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
 
@@ -253,7 +253,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
                 else -> "미확인"
             }
             val status = if (confirmedIdType != ID_TYPE_UNKNOWN) "확정" else "감지중(${idTypeHistory.size})"
-            Log.d(TAG, "텍스트: ${fullText.take(50)}...")
+            Log.d(TAG, "텍스트: ${fullText}")
             Log.d(TAG, "신분증 유형: $typeName, 점수: $idCardScore")
         }
 
@@ -297,7 +297,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             isValidFrame -> "ⓘ 신분증이 중심에 들어왔습니다. "  + "\n" +
                     "촬영 중이니 움직이지 마십시오."
             else -> analyzePosition(smoothedRect, guideRect)
-            }
+        }
         val guideColor = if (isIdCard) {
             android.graphics.Color.parseColor("#FFE621")
         } else {
@@ -738,9 +738,8 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         smoothedCardRect = null
         stopHapticFeedback()
 
-        idTypeHistory.clear()
-        if (validFrameCount == 0) {
-            confirmedIdType = ID_TYPE_UNKNOWN
+        if (confirmedIdType == ID_TYPE_UNKNOWN) {
+            idTypeHistory.clear()
         }
 
         runOnUiThread {
@@ -1001,23 +1000,139 @@ class IdCardRecognitionActivity : AppCompatActivity() {
     }
 
     private fun extractIdCardInfo(text: String): IdCardInfo {
+        Log.d(TAG, "$text")
+        val lines = text.split("\n").map { it.trim() }.filter { it.isNotEmpty() }
+        val residentMatch = RESIDENT_NUMBER_PATTERN.find(text)
+        val residentNum = residentMatch?.value?.replace(Regex("[^0-9]"), "") ?: ""
+
+        val textWithoutResident = if (residentMatch != null) {
+            text.replace(residentMatch.value, " ")
+        } else {
+            text
+        }
+
+        val driverLicenseNum = extractDriverLicenseNumber(textWithoutResident)
+
         return IdCardInfo.current.apply {
-            driverLicenseNumber = DRIVER_LICENSE_NUMBER_PATTERN.find(text)?.value
-                ?.replace(Regex("[^0-9]"), "") ?: ""
-            residentNumber = RESIDENT_NUMBER_PATTERN.find(text)?.value
-                ?.replace(Regex("[^0-9]"), "") ?: ""
-            issueDate = Regex("\\d{4}[./-]\\d{1,2}[./-]\\d{1,2}").find(text)?.value
-                ?.replace(Regex("[^0-9]"), "") ?: ""
-            name = extractName(text)
+            driverLicenseNumber = driverLicenseNum
+            residentNumber = residentNum
+            issueDate = extractIssueDate(text)
             address = Regex("([가-힣]+(?:시|도))[\\s]*[가-힣]+").find(text)?.value ?: ""
             idType = when (confirmedIdType) {
                 ID_TYPE_RESIDENT -> "resident"
                 ID_TYPE_DRIVER -> "driver"
                 else -> "resident"
             }
+            name = extractNameByContext(lines, idType, text)
         }
     }
 
+    private fun extractDriverLicenseNumber(text: String): String {
+        val patterns = listOf(
+            Regex("\\d{2}[- ]\\d{2}[- ]\\d{6}[- ]\\d{2}"),
+            Regex("\\d{2}[- ]?\\d{2}[- ]?\\d{6}[- ]?\\d{2}")
+        )
+
+        for (pattern in patterns) {
+            val matches = pattern.findAll(text)
+            for (match in matches) {
+                val numbersOnly = match.value.replace(Regex("[^0-9]"), "")
+                if (numbersOnly.length == 12) {
+                    return numbersOnly
+                }
+            }
+        }
+
+        return ""
+    }
+
+    private fun extractNameByContext(lines: List<String>, idType: String, fullText: String): String {
+
+        val name = NAME_PATTERN.find(lines[1])
+        Log.d(TAG, name?.value ?: "")
+        if (name != null && idType == "resident")
+            return name.value
+
+        for ((index, line) in lines.withIndex()) {
+            if (RESIDENT_NUMBER_PATTERN.containsMatchIn(line) ||
+                DRIVER_LICENSE_NUMBER_PATTERN.containsMatchIn(line)) {
+                for (offset in 1..2) {
+                    if (index - offset >= 0) {
+                        val aboveLine = lines[index - offset]
+                        val nameMatch = NAME_PATTERN.find(aboveLine)
+                        if (nameMatch != null && isValidName(nameMatch.value)) {
+                            return nameMatch.value
+                        }
+                    }
+                }
+            }
+        }
+
+        for ((index, line) in lines.withIndex()) {
+            if (line.contains("주민등록증") || line.contains("운전면허증")) {
+                for (offset in 1..3) {
+                    if (index + offset < lines.size) {
+                        val nextLine = lines[index + offset]
+                        val nameMatch = NAME_PATTERN.find(nextLine)
+                        if (nameMatch != null && isValidName(nameMatch.value)) {
+                            return nameMatch.value
+                        }
+                    }
+                }
+            }
+        }
+
+        return extractName(fullText)
+    }
+
+    private fun isValidName(text: String): Boolean {
+        if (text.length !in 2..4) return false
+
+        val isExcluded = EXCLUDE_NAME_WORDS.any { excluded ->
+            excluded.contains(text) || text.contains(excluded)
+        }
+        if (isExcluded) return false
+
+        val commonSurnames = listOf(
+            "김", "이", "박", "최", "정", "강", "조", "윤", "장", "임",
+            "한", "오", "서", "신", "권", "황", "안", "송", "류", "유",
+            "홍", "전", "고", "문", "양", "손", "배", "백", "허", "남",
+            "심", "노", "하", "곽", "성", "차", "주", "우", "구", "민",
+            "나", "진", "지", "엄", "채", "원", "천", "방", "공", "현"
+        )
+
+        val firstChar = text.first().toString()
+        return commonSurnames.contains(firstChar)
+    }
+
+    private fun extractIssueDate(fullText: String): String {
+        val datePattern = Regex("(19|20)\\d{2}[.\\-/년\\s]+\\d{1,2}[.\\-/월\\s]+\\d{1,2}[일]?")
+
+        val allDates = datePattern.findAll(fullText).toList()
+        if (allDates.isNotEmpty()) {
+            return formatDate(allDates.last().value)
+        }
+
+        val spaceDatePattern = Regex("(19|20)\\d{2}\\s+\\d{1,2}\\s+\\d{1,2}")
+        val spaceDates = spaceDatePattern.findAll(fullText).toList()
+        if (spaceDates.isNotEmpty()) {
+            return formatDate(spaceDates.last().value)
+        }
+
+        return ""
+    }
+
+    private fun formatDate(dateString: String): String {
+        val numbers = Regex("\\d+").findAll(dateString).map { it.value }.toList()
+
+        if (numbers.size >= 3) {
+            val year = numbers[0]
+            val month = numbers[1].padStart(2, '0')
+            val day = numbers[2].padStart(2, '0')
+            return "$year$month$day"
+        }
+        return dateString.replace(Regex("[^0-9]"), "")
+    }
     private fun extractName(text: String): String {
         val matches = NAME_PATTERN.findAll(text)
 
@@ -1029,7 +1144,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             }
 
             if (!isExcluded) {
-                if (isLikelyName(candidate)) {
+                if (isValidName(candidate)) {
                     return candidate
                 }
             }
@@ -1046,19 +1161,6 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         }
 
         return ""
-    }
-
-    private fun isLikelyName(text: String): Boolean {
-        if (text.length !in 2..4) return false
-
-        val commonSurnames = listOf(
-            "김", "이", "박", "최", "정", "강", "조", "윤", "장", "임",
-            "한", "오", "서", "신", "권", "황", "안", "송", "류", "유",
-            "홍", "전", "고", "문", "양", "손", "배", "백", "허", "남"
-        )
-
-        val firstChar = text.first().toString()
-        return commonSurnames.contains(firstChar)
     }
 
     private fun resetProcessing() {
