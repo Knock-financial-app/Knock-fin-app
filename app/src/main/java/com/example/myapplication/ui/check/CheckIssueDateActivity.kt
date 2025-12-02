@@ -1,6 +1,8 @@
 package com.example.myapplication.ui.check
 
 import android.R.attr.name
+import android.content.Context.INPUT_METHOD_SERVICE
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -9,9 +11,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat.getSystemService
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
 import com.google.android.material.internal.ViewUtils.showKeyboard
+import kotlin.jvm.java
 
 class CheckIssueDateActivity : AppCompatActivity() {
     private lateinit var yearTextbox: EditText
@@ -30,6 +34,8 @@ class CheckIssueDateActivity : AppCompatActivity() {
         prevButton = findViewById<Button>(R.id.PrevButton)
         nextButton = findViewById<Button>(R.id.NextButton)
 
+        //val isResident = IdCardInfo.current.isResident ?: ""
+
         yearTextbox.setOnClickListener {
             yearTextbox.requestFocus()
             showKeyboard(yearTextbox)
@@ -46,32 +52,35 @@ class CheckIssueDateActivity : AppCompatActivity() {
         }
 
         prevButton.setOnClickListener{
-            //TODO 민증이면 추후에 주민등록번호 페이지로 연결
-            setContentView(R.layout.activity_check_driver)
+            //TODO 민증이면 추후에 주민등록번호 페이지로 연결, if문 ㄱㄱ
+
+            val intent = Intent(this, CheckDriverActivity::class.java)
+            startActivity(intent)
         }
 
         nextButton.setOnClickListener{
-            finish()
-            //TODO 다음 확인 페이지 연결
-            //setContentView(R.layout.activity_check_driver)
+            saveIssueDate()
+            val intent = Intent(this, CheckResidentRegistrationCardActivity::class.java)
+            startActivity(intent)
+            //TODO 민증이면 추후에 주민등록번호 전체 확인 페이지로 연결, if문 ㄱㄱ
 
         }
 
-        val idCardInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra("idCardInfo", IdCardInfo::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableExtra("idCardInfo")
-        }
-
-        val dateFull = idCardInfo?.issueDate ?: ""
-        yearTextbox.setText(dateFull.substring(0, 4))
-        monthTextbox.setText(dateFull.substring(4, 6))
-        dayTextbox.setText(dateFull.substring(6, 8))
+        val dateFull = IdCardInfo.current.driverLicenseNumber
+        yearTextbox.setText(dateFull.take(4))
+        monthTextbox.setText(dateFull.drop(4).take(2))
+        dayTextbox.setText(dateFull.drop(6).take(2))
     }
 
     private fun showKeyboard(selected : View) {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(selected, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun saveIssueDate() {
+        IdCardInfo.current.issueDate =
+            yearTextbox.text.toString() +
+            monthTextbox.text.toString() +
+            dayTextbox.text.toString()
     }
 }

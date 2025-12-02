@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.check
 
 import android.R.attr.name
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -11,6 +12,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
+import com.example.myapplication.ui.main.MainActivity
 import com.google.android.material.internal.ViewUtils.showKeyboard
 
 class CheckResidentNumberActivity : AppCompatActivity() {
@@ -31,18 +33,12 @@ class CheckResidentNumberActivity : AppCompatActivity() {
         nextButton = findViewById<Button>(R.id.NextButton)
         reCameraButton = findViewById<Button>(R.id.ReCameraButton)
 
-        rrnFrontTextbox.setOnClickListener {
-            rrnFrontTextbox.requestFocus()
-            showKeyboard(rrnFrontTextbox)
-        }
-
-        rrnBackFirstDigit.setOnClickListener {
-            rrnBackFirstDigit.requestFocus()
-            showKeyboard(rrnBackFirstDigit)
-        }
+        rrnFrontTextbox.isEnabled = false
+        rrnBackFirstDigit.isEnabled = false
 
         prevButton.setOnClickListener{
-            setContentView(R.layout.activity_check_name)
+            val intent = Intent(this, CheckNameActivity::class.java)
+            startActivity(intent)
         }
 
         reCameraButton.setOnClickListener{
@@ -51,19 +47,14 @@ class CheckResidentNumberActivity : AppCompatActivity() {
         }
 
         nextButton.setOnClickListener{
-            finish()
             //TODO 일단 운전면허번호로 연결함 추후에 민증이면 발급일자로 연결
-            setContentView(R.layout.activity_check_driver)
+            saveResidentNumber()
+            val intent = Intent(this, CheckDriverActivity::class.java)
+            startActivity(intent)
         }
 
-        val idCardInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra("idCardInfo", IdCardInfo::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableExtra("idCardInfo")
-        }
+        val rrnFull = IdCardInfo.current.residentNumber
 
-        val rrnFull = idCardInfo?.residentNumber ?: ""
         rrnFrontTextbox.setText(rrnFull.take(6))
         rrnBackFirstDigit.setText(rrnFull.getOrNull(6)?.toString() ?: "")
     }
@@ -71,5 +62,12 @@ class CheckResidentNumberActivity : AppCompatActivity() {
     private fun showKeyboard(selected : View) {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(selected, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun saveResidentNumber() {
+        IdCardInfo.current.residentNumber =
+            rrnFrontTextbox.text.toString() +
+            rrnBackFirstDigit.text.toString() +
+            "●●●●●●"
     }
 }

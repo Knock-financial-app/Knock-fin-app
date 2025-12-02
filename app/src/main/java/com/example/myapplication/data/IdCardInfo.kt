@@ -12,6 +12,10 @@ data class IdCardInfo(
     var address: String = "",
     var imagePath: String = ""
 ) : Parcelable {
+
+    companion object {
+        var current: IdCardInfo = IdCardInfo()
+    }
     fun isValid(): Boolean {
         return name.isNotEmpty() && residentNumber.isNotEmpty()
     }
