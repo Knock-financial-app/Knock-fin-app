@@ -30,8 +30,6 @@
             android:exported="false"/>
         <activity android:name=".ui.main.SecureAuthActivity"
             android:exported="false"/>
-        <activity android:name=".ui.main.PreparingPageActivity"
-            android:exported="false"/>
         <activity android:name=".ui.idcard.ChooseIdCardActivity"
             android:exported="false"/>
         <activity android:name=".ui.idcard.CreateAccountActivity"
