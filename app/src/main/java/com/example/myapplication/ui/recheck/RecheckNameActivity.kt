@@ -9,6 +9,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -28,7 +29,7 @@ import kotlin.jvm.java
 
 class RecheckNameActivity : AppCompatActivity() {
     private lateinit var nameTextbox : EditText
-    private lateinit var prevButton : ImageView
+    private lateinit var prevButton : ImageButton
     private lateinit var nextButton : Button
     private lateinit var aiNameButton1: Button
     private lateinit var aiNameButton2: Button
@@ -45,7 +46,7 @@ class RecheckNameActivity : AppCompatActivity() {
         setContentView(R.layout.activity_recheck_name)
 
         nameTextbox = findViewById<EditText>(R.id.NameTextbox)
-        prevButton = findViewById<ImageView>(R.id.PrevButton)
+        prevButton = findViewById<ImageButton>(R.id.PrevButton)
         nextButton = findViewById<Button>(R.id.NextButton)
         aiNameButton1 = findViewById<Button>(R.id.AiNameButton1)
         aiNameButton2 = findViewById<Button>(R.id.AiNameButton2)

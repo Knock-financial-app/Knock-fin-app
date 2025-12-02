@@ -6,6 +6,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
@@ -17,7 +18,7 @@ class RecheckIssueDateActivity : AppCompatActivity() {
     private lateinit var yearTextbox: EditText
     private lateinit var monthTextbox: EditText
     private lateinit var dayTextbox: EditText
-    private lateinit var prevButton : Button
+    private lateinit var prevButton : ImageButton
     private lateinit var nextButton : Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,7 +28,7 @@ class RecheckIssueDateActivity : AppCompatActivity() {
         yearTextbox = findViewById(R.id.YearTextbox)
         monthTextbox = findViewById(R.id.MonthTextbox)
         dayTextbox = findViewById(R.id.DayTextbox)
-        prevButton = findViewById<Button>(R.id.PrevButton)
+        prevButton = findViewById<ImageButton>(R.id.PrevButton)
         nextButton = findViewById<Button>(R.id.NextButton)
 
         val isResidentaCard = IdCardInfo.current.isResidentCard()
@@ -72,7 +73,7 @@ class RecheckIssueDateActivity : AppCompatActivity() {
             }
         }
 
-        val dateFull = IdCardInfo.current.driverLicenseNumber
+        val dateFull = IdCardInfo.current.issueDate
         yearTextbox.setText(dateFull.take(4))
         monthTextbox.setText(dateFull.drop(4).take(2))
         dayTextbox.setText(dateFull.drop(6).take(2))

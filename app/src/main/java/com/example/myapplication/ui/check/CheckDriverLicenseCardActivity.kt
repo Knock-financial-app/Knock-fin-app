@@ -6,12 +6,15 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
+import com.example.myapplication.ui.idcard.IdCardReadyActivity
+import com.example.myapplication.ui.idcard.IdCardRecognitionActivity
 import com.example.myapplication.ui.main.MainActivity
 import com.example.myapplication.ui.recheck.RecheckDriverNumberActivity
 import com.example.myapplication.ui.recheck.RecheckIssueDateActivity
@@ -33,7 +36,7 @@ class CheckDriverLicenseCardActivity : AppCompatActivity() {
     private lateinit var monthTextView: TextView
     private lateinit var dayTextView: TextView
     private lateinit var issueDateClickOverlay: View
-    private lateinit var xButton: ImageView
+    private lateinit var xButton: ImageButton
     private lateinit var reCameraButton: Button
     private lateinit var nextButton: Button
 
@@ -76,15 +79,15 @@ class CheckDriverLicenseCardActivity : AppCompatActivity() {
         }
 
         xButton.setOnClickListener{
-            //TODO 메인페이지로 이동
             val intent = Intent(this, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
             startActivity(intent)
         }
 
         reCameraButton.setOnClickListener{
-            //TODO 신분증 촬영 시작 페이지 연결
-            finish()
+            val intent = Intent(this, IdCardRecognitionActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            startActivity(intent)
         }
 
         nextButton.setOnClickListener{
@@ -116,15 +119,15 @@ class CheckDriverLicenseCardActivity : AppCompatActivity() {
         rrnFrontTextView.text = rrnFull.take(6)
         rrnBackFirstTextView.text = rrnFull.getOrNull(6)?.toString() ?: ""
 
-        val dateFull = IdCardInfo.current.issueDate
-        yearTextView.text = dateFull.take(4)
-        monthTextView.text = dateFull.drop(4).take(2)
-        dayTextView.text = dateFull.drop(6).take(2)
-
         val driverFull = IdCardInfo.current.driverLicenseNumber
         licenseNum1.text = driverFull.take(2)
         licenseNum2.text = driverFull.drop(2).take(2)
         licenseNum3.text = driverFull.drop(4).take(6)
         licenseNum4.text = driverFull.drop(10).take(2)
+
+        val dateFull = IdCardInfo.current.issueDate
+        yearTextView.text = dateFull.take(4)
+        monthTextView.text = dateFull.drop(4).take(2)
+        dayTextView.text = dateFull.drop(6).take(2)
     }
 }

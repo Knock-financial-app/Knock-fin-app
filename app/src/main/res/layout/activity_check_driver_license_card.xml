@@ -6,7 +6,7 @@
     android:background="#FFFFFF">
 
     <!-- 닫기 버튼 -->
-    <ImageView
+    <ImageButton
         android:id="@+id/XButton"
         android:layout_width="20dp"
         android:layout_height="20dp"

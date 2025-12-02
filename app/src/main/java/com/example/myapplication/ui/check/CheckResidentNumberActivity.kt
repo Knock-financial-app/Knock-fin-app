@@ -7,14 +7,17 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
+import com.example.myapplication.ui.idcard.IdCardReadyActivity
+import com.example.myapplication.ui.idcard.IdCardRecognitionActivity
 
 class CheckResidentNumberActivity : AppCompatActivity() {
     private lateinit var rrnFrontTextbox : EditText
     private lateinit var rrnBackFirstDigit : EditText
-    private lateinit var prevButton : Button
+    private lateinit var prevButton : ImageButton
     private lateinit var nextButton : Button
     private lateinit var reCameraButton: Button
 
@@ -24,7 +27,7 @@ class CheckResidentNumberActivity : AppCompatActivity() {
 
         rrnFrontTextbox = findViewById<EditText>(R.id.RRNFrontTextbox)
         rrnBackFirstDigit = findViewById<EditText>(R.id.RRNBackFirstDigit)
-        prevButton = findViewById<Button>(R.id.PrevButton)
+        prevButton = findViewById<ImageButton>(R.id.PrevButton)
         nextButton = findViewById<Button>(R.id.NextButton)
         reCameraButton = findViewById<Button>(R.id.ReCameraButton)
 
@@ -41,8 +44,9 @@ class CheckResidentNumberActivity : AppCompatActivity() {
         }
 
         reCameraButton.setOnClickListener{
-            //TODO 신분증 촬영 시작 페이지 연결
-            finish()
+            val intent = Intent(this, IdCardRecognitionActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            startActivity(intent)
         }
 
         nextButton.setOnClickListener{

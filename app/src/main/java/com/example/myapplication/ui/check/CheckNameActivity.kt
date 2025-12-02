@@ -9,6 +9,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.myapplication.BuildConfig
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
+import com.example.myapplication.ui.idcard.IdCardReadyActivity
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.android.material.internal.ViewUtils.showKeyboard
 import kotlinx.coroutines.launch
@@ -25,7 +27,7 @@ import kotlin.jvm.java
 
 class CheckNameActivity : AppCompatActivity() {
     private lateinit var nameTextbox : EditText
-    private lateinit var prevButton : ImageView
+    private lateinit var prevButton : ImageButton
     private lateinit var nextButton : Button
     private lateinit var aiNameButton1: Button
     private lateinit var aiNameButton2: Button
@@ -42,7 +44,7 @@ class CheckNameActivity : AppCompatActivity() {
         setContentView(R.layout.activity_check_name)
 
         nameTextbox = findViewById<EditText>(R.id.NameTextbox)
-        prevButton = findViewById<ImageView>(R.id.PrevButton)
+        prevButton = findViewById<ImageButton>(R.id.PrevButton)
         nextButton = findViewById<Button>(R.id.NextButton)
         aiNameButton1 = findViewById<Button>(R.id.AiNameButton1)
         aiNameButton2 = findViewById<Button>(R.id.AiNameButton2)
@@ -55,8 +57,9 @@ class CheckNameActivity : AppCompatActivity() {
         }
 
         prevButton.setOnClickListener{
-            //TODO 메인페이지 구현 이후 연결
-            finish()
+            val intent = Intent(this, IdCardReadyActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            startActivity(intent)
         }
 
         nextButton.setOnClickListener{
