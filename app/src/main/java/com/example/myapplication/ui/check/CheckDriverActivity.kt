@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.check
 
 import android.R.attr.name
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -55,7 +56,8 @@ class CheckDriverActivity : AppCompatActivity() {
         }
 
         prevButton.setOnClickListener{
-            setContentView(R.layout.activity_check_resident_number)
+            val intent = Intent(this, CheckResidentNumberActivity::class.java)
+            startActivity(intent)
         }
 
         reCameraButton.setOnClickListener{
@@ -64,25 +66,27 @@ class CheckDriverActivity : AppCompatActivity() {
         }
 
         nextButton.setOnClickListener{
-            finish()
-            setContentView(R.layout.activity_check_issue_date)
+            saveDriver()
+            val intent = Intent(this, CheckIssueDateActivity::class.java)
+            startActivity(intent)
         }
 
-        val idCardInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra("idCardInfo", IdCardInfo::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableExtra("idCardInfo")
-        }
-
-        val driverFull = idCardInfo?.driverLicenseNumber ?: ""
-        licenseNum1.setText(driverFull.substring(0, 2))
-        licenseNum2.setText(driverFull.substring(2, 4))
-        licenseNum3.setText(driverFull.substring(4, 10))
-        licenseNum4.setText(driverFull.substring(10, 12))
+        val driverFull = IdCardInfo.current.driverLicenseNumber
+        licenseNum1.setText(driverFull.take(2))
+        licenseNum2.setText(driverFull.drop(2).take(2))
+        licenseNum3.setText(driverFull.drop(4).take(6))
+        licenseNum4.setText(driverFull.drop(10).take(2))
     }
     private fun showKeyboard(selected : View) {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(selected, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun saveDriver() {
+        IdCardInfo.current.driverLicenseNumber =
+            licenseNum1.text.toString() +
+            licenseNum2.text.toString() +
+            licenseNum3.text.toString() +
+            licenseNum4.text.toString()
     }
 }

@@ -5,14 +5,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Button
+<!--    <Button-->
+<!--        android:id="@+id/PrevButton"-->
+<!--        android:layout_width="43dp"-->
+<!--        android:layout_height="45dp"-->
+<!--        android:layout_marginStart="10dp"-->
+<!--        android:layout_marginTop="10dp"-->
+<!--        android:backgroundTint="#00FFFFFF"-->
+<!--        android:text="&lt;"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent" />-->
+
+    <ImageView
         android:id="@+id/PrevButton"
-        android:layout_width="43dp"
-        android:layout_height="45dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
-        android:backgroundTint="#00FFFFFF"
-        android:text="&lt;"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_cancel"
+        android:layout_margin="30dp"
+        app:tint="@color/black"
+        android:clickable="true"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

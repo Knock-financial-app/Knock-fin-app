@@ -1,7 +1,6 @@
 package com.example.myapplication.ui.check
 
 import android.app.Activity
-import android.app.ProgressDialog.show
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -10,6 +9,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -25,7 +25,7 @@ import kotlin.jvm.java
 
 class CheckNameActivity : AppCompatActivity() {
     private lateinit var nameTextbox : EditText
-    private lateinit var prevButton : Button
+    private lateinit var prevButton : ImageView
     private lateinit var nextButton : Button
     private lateinit var aiNameButton1: Button
     private lateinit var aiNameButton2: Button
@@ -42,7 +42,7 @@ class CheckNameActivity : AppCompatActivity() {
         setContentView(R.layout.activity_check_name)
 
         nameTextbox = findViewById<EditText>(R.id.NameTextbox)
-        prevButton = findViewById<Button>(R.id.PrevButton)
+        prevButton = findViewById<ImageView>(R.id.PrevButton)
         nextButton = findViewById<Button>(R.id.NextButton)
         aiNameButton1 = findViewById<Button>(R.id.AiNameButton1)
         aiNameButton2 = findViewById<Button>(R.id.AiNameButton2)
@@ -60,18 +60,12 @@ class CheckNameActivity : AppCompatActivity() {
         }
 
         nextButton.setOnClickListener{
+            saveName()
             val intent = Intent(this, CheckResidentNumberActivity::class.java)
             startActivity(intent)
         }
 
-        val idCardInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra("idCardInfo", IdCardInfo::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableExtra("idCardInfo")
-        }
-
-        nameTextbox.setText(idCardInfo?.name ?: "")
+        nameTextbox.setText(IdCardInfo.current.name)
 
         hideAiNameButtons()
         genterateAiNames()
@@ -158,5 +152,9 @@ class CheckNameActivity : AppCompatActivity() {
     private fun showKeyboard(selected : View) {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(selected, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun saveName() {
+        IdCardInfo.current.name = nameTextbox.text.toString()
     }
 }

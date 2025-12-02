@@ -48,6 +48,8 @@
             android:exported="true"/>
         <activity android:name=".ui.check.CheckIssueDateActivity"
             android:exported="true"/>
+        <activity android:name=".ui.check.CheckResidentRegistrationCardActivity"
+            android:exported="true"/>
     </application>
 
 </manifest>

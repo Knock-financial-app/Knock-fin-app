@@ -13,6 +13,10 @@ data class IdCardInfo(
     var imagePath: String = "",
     var idType: String = ""
 ) : Parcelable {
+
+    companion object {
+        var current: IdCardInfo = IdCardInfo()
+    }
     fun isValid(): Boolean {
         return name.isNotEmpty() && (residentNumber.isNotEmpty() || driverLicenseNumber.isNotEmpty())
     }
