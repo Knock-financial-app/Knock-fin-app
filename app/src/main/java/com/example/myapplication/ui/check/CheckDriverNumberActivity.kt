@@ -6,16 +6,20 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
+import com.example.myapplication.ui.idcard.IdCardReadyActivity
+import com.example.myapplication.ui.idcard.IdCardRecognitionActivity
+import kotlin.jvm.java
 
 class CheckDriverNumberActivity : AppCompatActivity() {
     private lateinit var licenseNum1: EditText
     private lateinit var licenseNum2: EditText
     private lateinit var licenseNum3: EditText
     private lateinit var licenseNum4: EditText
-    private lateinit var prevButton : Button
+    private lateinit var prevButton : ImageButton
     private lateinit var nextButton : Button
     private lateinit var reCameraButton: Button
 
@@ -27,7 +31,7 @@ class CheckDriverNumberActivity : AppCompatActivity() {
         licenseNum2 = findViewById(R.id.LicenseNum2)
         licenseNum3 = findViewById(R.id.LicenseNum3)
         licenseNum4 = findViewById(R.id.LicenseNum4)
-        prevButton = findViewById<Button>(R.id.PrevButton)
+        prevButton = findViewById<ImageButton>(R.id.PrevButton)
         nextButton = findViewById<Button>(R.id.NextButton)
         reCameraButton = findViewById<Button>(R.id.ReCameraButton)
 
@@ -57,8 +61,9 @@ class CheckDriverNumberActivity : AppCompatActivity() {
         }
 
         reCameraButton.setOnClickListener{
-            //TODO 신분증 촬영 시작 페이지 연결
-            finish()
+            val intent = Intent(this, IdCardRecognitionActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            startActivity(intent)
         }
 
         nextButton.setOnClickListener{
