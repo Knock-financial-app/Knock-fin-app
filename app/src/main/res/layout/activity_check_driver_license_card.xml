@@ -6,40 +6,38 @@
     android:background="#FFFFFF">
 
     <!-- 닫기 버튼 -->
-    <Button
-        android:id="@+id/PrevButton"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
-        android:backgroundTint="#00FFFFFF"
-        android:text="✕"
-        android:textColor="#000000"
-        android:textSize="16sp"
+    <ImageView
+        android:id="@+id/XButton"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_margin="30dp"
+        android:clickable="true"
+        android:src="@drawable/ic_cancel"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/black" />
 
     <!-- 제목 -->
     <TextView
         android:id="@+id/Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
         android:text="등록된 정보를 확인해주세요"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/PrevButton" />
+        app:layout_constraintTop_toBottomOf="@+id/XButton" />
 
     <!-- 신분증 이미지 카드 -->
     <androidx.cardview.widget.CardView
         android:id="@+id/CardIdImage"
         android:layout_width="0dp"
-        android:layout_height="140dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="20dp"
+        android:layout_height="180dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="24dp"
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -50,8 +48,8 @@
             android:id="@+id/IvIdCard"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:contentDescription="신분증 이미지" />
+            android:contentDescription="신분증 이미지"
+            android:scaleType="fitCenter" />
 
     </androidx.cardview.widget.CardView>
 
@@ -60,9 +58,9 @@
         android:id="@+id/NoticeText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="20dp"
+        android:layout_marginEnd="24dp"
         android:text="신분증 정보를 확인하고 직접 수정하거나 재촬영하세요."
         android:textColor="#888888"
         android:textSize="11sp"
@@ -75,7 +73,7 @@
         android:id="@+id/NameLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="12dp"
         android:text="이름"
         android:textColor="#888888"
@@ -83,45 +81,57 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/NoticeText" />
 
-    <!-- 이름 입력 -->
-    <EditText
-        android:id="@+id/NameEditText"
+    <!-- 이름 박스 -->
+    <FrameLayout
+        android:id="@+id/NameBox"
         android:layout_width="0dp"
         android:layout_height="42dp"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="4dp"
-        android:layout_marginEnd="20dp"
+        android:layout_marginEnd="24dp"
         android:background="@drawable/textbox_border"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:textColor="#000000"
-        android:textSize="14sp"
-        android:inputType="text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/NameLabel" />
+        app:layout_constraintTop_toBottomOf="@+id/NameLabel">
+
+        <TextView
+            android:id="@+id/NameEditText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="#000000"
+            android:textSize="14sp" />
+
+        <View
+            android:id="@+id/NameClickOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
 
     <!-- 주민등록번호 라벨 -->
     <TextView
         android:id="@+id/RRNLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="10dp"
         android:text="주민등록번호"
         android:textColor="#888888"
         android:textSize="12sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/NameEditText" />
+        app:layout_constraintTop_toBottomOf="@+id/NameBox" />
 
     <!-- 주민등록번호 박스 -->
     <LinearLayout
         android:id="@+id/RRNBox"
         android:layout_width="0dp"
         android:layout_height="42dp"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="4dp"
-        android:layout_marginEnd="20dp"
+        android:layout_marginEnd="24dp"
         android:background="@drawable/textbox_border"
         android:gravity="center_vertical"
         android:orientation="horizontal"
@@ -131,15 +141,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/RRNLabel">
 
-        <EditText
+        <TextView
             android:id="@+id/RRNFrontEditText"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@null"
             android:gravity="center"
-            android:inputType="number"
-            android:maxLength="6"
             android:textColor="#000000"
             android:textSize="14sp" />
 
@@ -150,19 +157,15 @@
             android:textColor="#000000"
             android:textSize="16sp" />
 
-        <EditText
+        <TextView
             android:id="@+id/RRNBackFirstEditText"
             android:layout_width="25dp"
             android:layout_height="match_parent"
-            android:background="@null"
             android:gravity="center"
-            android:inputType="number"
-            android:maxLength="1"
             android:textColor="#000000"
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/RRNBackMasked"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -178,7 +181,7 @@
         android:id="@+id/DriverLicenseLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="10dp"
         android:text="운전면허번호"
         android:textColor="#888888"
@@ -187,98 +190,97 @@
         app:layout_constraintTop_toBottomOf="@+id/RRNBox" />
 
     <!-- 운전면허번호 박스 -->
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/DriverContainer"
         android:layout_width="0dp"
         android:layout_height="42dp"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="4dp"
-        android:layout_marginEnd="20dp"
+        android:layout_marginEnd="24dp"
         android:background="@drawable/textbox_border"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/DriverLicenseLabel">
 
-        <EditText
-            android:id="@+id/LicenseNum1"
-            android:layout_width="30dp"
-            android:layout_height="match_parent"
-            android:background="@null"
-            android:gravity="center"
-            android:inputType="number"
-            android:maxLength="2"
-            android:textColor="#000000"
-            android:textSize="14sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:text="-"
-            android:textColor="#000000"
-            android:textSize="14sp" />
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
 
-        <EditText
-            android:id="@+id/LicenseNum2"
-            android:layout_width="30dp"
-            android:layout_height="match_parent"
-            android:background="@null"
-            android:gravity="center"
-            android:inputType="number"
-            android:maxLength="2"
-            android:textColor="#000000"
-            android:textSize="14sp" />
+            <TextView
+                android:id="@+id/LicenseNum1"
+                android:layout_width="30dp"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textColor="#000000"
+                android:textSize="14sp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="-"
-            android:textColor="#000000"
-            android:textSize="14sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="-"
+                android:textColor="#000000"
+                android:textSize="14sp" />
 
-        <EditText
-            android:id="@+id/LicenseNum3"
-            android:layout_width="60dp"
-            android:layout_height="match_parent"
-            android:background="@null"
-            android:gravity="center"
-            android:inputType="number"
-            android:maxLength="6"
-            android:textColor="#000000"
-            android:textSize="14sp" />
+            <TextView
+                android:id="@+id/LicenseNum2"
+                android:layout_width="30dp"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textColor="#000000"
+                android:textSize="14sp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="-"
-            android:textColor="#000000"
-            android:textSize="14sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="-"
+                android:textColor="#000000"
+                android:textSize="14sp" />
 
-        <EditText
-            android:id="@+id/LicenseNum4"
-            android:layout_width="30dp"
-            android:layout_height="match_parent"
-            android:background="@null"
-            android:gravity="center"
-            android:inputType="number"
-            android:maxLength="2"
-            android:textColor="#000000"
-            android:textSize="14sp" />
+            <TextView
+                android:id="@+id/LicenseNum3"
+                android:layout_width="60dp"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textColor="#000000"
+                android:textSize="14sp" />
 
-    </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="-"
+                android:textColor="#000000"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/LicenseNum4"
+                android:layout_width="30dp"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textColor="#000000"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <View
+            android:id="@+id/DriverClickOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
 
     <!-- 발급일자 라벨 -->
     <TextView
         android:id="@+id/IssueDateLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="10dp"
         android:text="발급일자"
         android:textColor="#888888"
@@ -287,85 +289,87 @@
         app:layout_constraintTop_toBottomOf="@+id/DriverContainer" />
 
     <!-- 발급일자 박스 -->
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/IssueDateBox"
         android:layout_width="0dp"
         android:layout_height="42dp"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="4dp"
-        android:layout_marginEnd="20dp"
+        android:layout_marginEnd="24dp"
         android:background="@drawable/textbox_border"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/IssueDateLabel">
 
-        <EditText
-            android:id="@+id/IssueDateYearEditText"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1.5"
-            android:background="@null"
-            android:gravity="center"
-            android:hint="YYYY"
-            android:inputType="number"
-            android:maxLength="4"
-            android:textColor="#000000"
-            android:textSize="14sp" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="."
-            android:textColor="#000000"
-            android:textSize="16sp" />
+            <TextView
+                android:id="@+id/IssueDateYearTextView"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.5"
+                android:gravity="center"
+                android:hint="YYYY"
+                android:textColor="#000000"
+                android:textSize="14sp" />
 
-        <EditText
-            android:id="@+id/IssueDateMonthEditText"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@null"
-            android:gravity="center"
-            android:hint="MM"
-            android:inputType="number"
-            android:maxLength="2"
-            android:textColor="#000000"
-            android:textSize="14sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="."
+                android:textColor="#000000"
+                android:textSize="16sp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="."
-            android:textColor="#000000"
-            android:textSize="16sp" />
+            <TextView
+                android:id="@+id/IssueDateMonthTextView"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:hint="MM"
+                android:textColor="#000000"
+                android:textSize="14sp" />
 
-        <EditText
-            android:id="@+id/IssueDateDayEditText"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@null"
-            android:gravity="center"
-            android:hint="DD"
-            android:inputType="number"
-            android:maxLength="2"
-            android:textColor="#000000"
-            android:textSize="14sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="."
+                android:textColor="#000000"
+                android:textSize="16sp" />
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/IssueDateDayTextView"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:hint="DD"
+                android:textColor="#000000"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <View
+            android:id="@+id/IssueDateClickOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
 
     <!-- 재촬영 버튼 -->
     <Button
         android:id="@+id/ReCameraButton"
         android:layout_width="0dp"
         android:layout_height="46dp"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="24dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="24dp"
         android:backgroundTint="#BABAC5"
         android:text="재촬영"
         android:textColor="#000000"
@@ -380,8 +384,8 @@
         android:layout_width="0dp"
         android:layout_height="46dp"
         android:layout_marginStart="8dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
         android:backgroundTint="#FFE621"
         android:text="확인"
         android:textColor="#000000"

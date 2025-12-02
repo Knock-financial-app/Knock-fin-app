@@ -73,7 +73,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
 
-        private const val REQUIRED_VALID_FRAMES = 5
+        private const val REQUIRED_VALID_FRAMES = 3
         private const val GUIDE_MATCH_THRESHOLD = 0.90f
         private const val STABILITY_THRESHOLD = 0.08f
         private const val CARD_ASPECT_RATIO = 1.585f
@@ -103,7 +103,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             "대한민국", "경찰청장", "도지사", "시장", "군수", "구청장",
             "발급일", "생년월일", "주소지", "적성검사", "갱신기간",
             "면허번호", "조건", "종류", "보통", "원동기", "대형",
-            "성명", "이름", "주소", "발행", "유효기간", "경찰청"
+            "성명", "이름", "주소", "발행", "유효기간", "경찰청", "주민"
         )
         private val DRIVER_LICENSE_NUMBER_PATTERN = Regex("\\d{2}[- ]?\\d{2}[- ]?\\d{6}[- ]?\\d{2}")
         private val RESIDENT_NUMBER_PATTERN = Regex("\\d{6}[- ]?[1-4]\\d{6}")
@@ -947,7 +947,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
     }
 
     private fun extractIdCardInfo(text: String): IdCardInfo {
-        return IdCardInfo().apply {
+        return IdCardInfo.current.apply {
             driverLicenseNumber = DRIVER_LICENSE_NUMBER_PATTERN.find(text)?.value?.replace(" ", "") ?: ""
             residentNumber = RESIDENT_NUMBER_PATTERN.find(text)?.value?.replace(" ", "") ?: ""
             name = extractName(text)

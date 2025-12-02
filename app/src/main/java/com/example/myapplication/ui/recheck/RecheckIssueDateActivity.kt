@@ -1,8 +1,7 @@
-package com.example.myapplication.ui.check
+package com.example.myapplication.ui.recheck
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
@@ -10,10 +9,11 @@ import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
-import com.google.android.material.internal.ViewUtils.showKeyboard
+import com.example.myapplication.ui.check.CheckDriverLicenseCardActivity
+import com.example.myapplication.ui.check.CheckResidentRegistrationCardActivity
 import kotlin.jvm.java
 
-class CheckIssueDateActivity : AppCompatActivity() {
+class RecheckIssueDateActivity : AppCompatActivity() {
     private lateinit var yearTextbox: EditText
     private lateinit var monthTextbox: EditText
     private lateinit var dayTextbox: EditText
@@ -22,7 +22,7 @@ class CheckIssueDateActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_check_issue_date)
+        setContentView(R.layout.activity_recheck_issue_date)
 
         yearTextbox = findViewById(R.id.YearTextbox)
         monthTextbox = findViewById(R.id.MonthTextbox)
@@ -51,19 +51,17 @@ class CheckIssueDateActivity : AppCompatActivity() {
         prevButton.setOnClickListener{
             saveIssueDate()
             if (isResidentaCard) {
-                val intent = Intent(this, CheckResidentNumberActivity::class.java)
+                val intent = Intent(this, CheckResidentRegistrationCardActivity::class.java)
                 startActivity(intent)
             }
             else if (isDriverLicense) {
-                val intent = Intent(this, CheckDriverNumberActivity::class.java)
+                val intent = Intent(this, CheckDriverLicenseCardActivity::class.java)
                 startActivity(intent)
             }
         }
 
         nextButton.setOnClickListener{
             saveIssueDate()
-            val intent = Intent(this, CheckResidentRegistrationCardActivity::class.java)
-            startActivity(intent)
             if (isResidentaCard) {
                 val intent = Intent(this, CheckResidentRegistrationCardActivity::class.java)
                 startActivity(intent)
@@ -74,11 +72,10 @@ class CheckIssueDateActivity : AppCompatActivity() {
             }
         }
 
-        val dateFull = IdCardInfo.current.issueDate
+        val dateFull = IdCardInfo.current.driverLicenseNumber
         yearTextbox.setText(dateFull.take(4))
         monthTextbox.setText(dateFull.drop(4).take(2))
         dayTextbox.setText(dateFull.drop(6).take(2))
-        Log.d("yeartextbox","yearTextbox: ${yearTextbox}")
     }
 
     private fun showKeyboard(selected : View) {
