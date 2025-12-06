@@ -114,9 +114,10 @@ class OverlayView @JvmOverloads constructor(
         invalidate()
     }
 
-    fun checkMessage() : String {
+    fun checkMessage(): String {
         return this.statusMessage
     }
+
     fun clearDetection() {
         detectedCorners = null
         detectedRect = null
@@ -139,7 +140,6 @@ class OverlayView @JvmOverloads constructor(
         val guideRect = calculateGuideRect()
 
         drawDarkOverlay(canvas, guideRect)
-
         drawGuideFrame(canvas, guideRect)
 
         if (showDebug) {
@@ -151,7 +151,6 @@ class OverlayView @JvmOverloads constructor(
         }
 
         drawInstructionText(canvas, guideRect)
-
         drawStatusText(canvas, guideRect)
 
         if (showDebug) {
@@ -253,9 +252,8 @@ class OverlayView @JvmOverloads constructor(
 
         var textY = guideRect.bottom + 80f
 
-        for ((index, line) in lines.withIndex()) {
-            val displayText = line
-            canvas.drawText(displayText, width / 2f, textY, statusTextPaint)
+        for (line in lines) {
+            canvas.drawText(line, width / 2f, textY, statusTextPaint)
             textY += lineHeight
         }
     }
@@ -295,7 +293,7 @@ class OverlayView @JvmOverloads constructor(
     private fun drawDetectedRect(canvas: Canvas, imageRect: Rect) {
         if (imageWidth <= 0 || imageHeight <= 0) return
 
-        val viewRect = transformRect(imageRect)
+        val viewRect = transformRectCenterCrop(imageRect)
 
         canvas.drawRoundRect(viewRect, 8f, 8f, detectionFillPaint)
         canvas.drawRoundRect(viewRect, 8f, 8f, detectionPaint)
@@ -309,7 +307,7 @@ class OverlayView @JvmOverloads constructor(
     private fun transformPoint(imagePoint: PointF): PointF {
         val scaleX = width.toFloat() / imageWidth
         val scaleY = height.toFloat() / imageHeight
-        val scale = minOf(scaleX, scaleY)
+        val scale = maxOf(scaleX, scaleY)
 
         val offsetX = (width - imageWidth * scale) / 2f
         val offsetY = (height - imageHeight * scale) / 2f
@@ -320,19 +318,38 @@ class OverlayView @JvmOverloads constructor(
         )
     }
 
-    private fun transformRect(imageRect: Rect): RectF {
-        val scaleX = width.toFloat() / imageWidth
-        val scaleY = height.toFloat() / imageHeight
-        val scale = minOf(scaleX, scaleY)
+    private fun transformRectCenterCrop(imageRect: Rect): RectF {
+        val viewWidth = width.toFloat()
+        val viewHeight = height.toFloat()
+        val imgWidth = imageWidth.toFloat()
+        val imgHeight = imageHeight.toFloat()
 
-        val offsetX = (width - imageWidth * scale) / 2f
-        val offsetY = (height - imageHeight * scale) / 2f
+        if (imgWidth <= 0 || imgHeight <= 0) {
+            return RectF(imageRect)
+        }
+
+        val viewAspect = viewWidth / viewHeight
+        val imageAspect = imgWidth / imgHeight
+
+        val scale: Float
+        val offsetX: Float
+        val offsetY: Float
+
+        if (imageAspect > viewAspect) {
+            scale = viewHeight / imgHeight
+            offsetX = (imgWidth * scale - viewWidth) / 2f
+            offsetY = 0f
+        } else {
+            scale = viewWidth / imgWidth
+            offsetX = 0f
+            offsetY = (imgHeight * scale - viewHeight) / 2f
+        }
 
         return RectF(
-            imageRect.left * scale + offsetX,
-            imageRect.top * scale + offsetY,
-            imageRect.right * scale + offsetX,
-            imageRect.bottom * scale + offsetY
+            imageRect.left * scale - offsetX,
+            imageRect.top * scale - offsetY,
+            imageRect.right * scale - offsetX,
+            imageRect.bottom * scale - offsetY
         )
     }
 
