@@ -153,9 +153,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
     private fun initDetector() {
         try {
             idCardDetector = IdCardDetector(this)
-            Log.d(TAG, "✅ YOLO 탐지기 초기화 완료")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ YOLO 탐지기 초기화 실패: ${e.message}", e)
             Toast.makeText(this, "모델 로드 실패", Toast.LENGTH_SHORT).show()
         }
     }
@@ -211,14 +209,11 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             return
         }
 
-        Log.d(TAG, "📷 ImageProxy 원본: ${imageProxy.width}x${imageProxy.height}, rotation=${imageProxy.imageInfo.rotationDegrees}")
-
         analysisRotation = imageProxy.imageInfo.rotationDegrees
 
         val currentTime = System.currentTimeMillis()
         val shouldLog = currentTime - lastLogTime > 1000
         if (shouldLog) {
-            Log.d(TAG, "===== Frame #$frameCount (YOLO) =====")
             lastLogTime = currentTime
         }
 
@@ -228,9 +223,6 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             return
         }
 
-        Log.d(TAG, "📷 Bitmap 변환 후: ${bitmap.width}x${bitmap.height}")
-
-        // YOLO 탐지 실행
         val detection = detector.detect(bitmap)
 
         if (detection == null) {
@@ -240,36 +232,17 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             return
         }
 
-        Log.d(TAG, "📐 원본 비트맵: ${bitmap.width} x ${bitmap.height}")
-        Log.d(TAG, "📐 탐지 박스: L=${detection.boundingBox.left.toInt()}, T=${detection.boundingBox.top.toInt()}, R=${detection.boundingBox.right.toInt()}, B=${detection.boundingBox.bottom.toInt()}")
-        Log.d(TAG, "📐 박스 크기: ${detection.boundingBox.width().toInt()} x ${detection.boundingBox.height().toInt()}")
-        Log.d(TAG, "✅ 신분증 탐지! 신뢰도: ${(detection.confidence * 100).toInt()}%")
-
-        // 가이드 영역 계산 (비트맵 기준)
-        //val guideRect = calculateGuideRect(bitmap.width, bitmap.height)
         val guideRect = getGuideRectInBitmapCoords(bitmap.width, bitmap.height)
-
-        // 스무딩 적용
         val smoothedRect = smoothRect(detection.boundingBox)
 
-        // ⭐ 햅틱 점수 계산 (개선된 버전)
         val hapticResult = calculateHapticScore(smoothedRect, guideRect)
-
-        // 가이드 매칭 계산
         val matchResult = calculateGuideMatch(smoothedRect, guideRect)
 
         val isInsideGuide = matchResult.insideRatio >= GUIDE_MATCH_THRESHOLD
         val isStable = isStablePosition(detection.boundingBox)
         val isValidFrame = isInsideGuide && matchResult.fillRatio >= 0.80f && isStable
 
-        // ⭐ 햅틱 피드백 (개선된 점수 사용)
         triggerHapticFeedback(true, hapticResult)
-
-        if (shouldLog) {
-            Log.d(TAG, "🎯 가이드: [${guideRect.left.toInt()}, ${guideRect.top.toInt()}, ${guideRect.right.toInt()}, ${guideRect.bottom.toInt()}]")
-            Log.d(TAG, "🎯 매칭: inside=${(matchResult.insideRatio * 100).toInt()}%, fill=${(matchResult.fillRatio * 100).toInt()}%")
-            Log.d(TAG, "📳 햅틱 점수: ${(hapticResult * 100).toInt()}%")
-        }
 
         val fillPercent = (matchResult.fillRatio * 100).toInt()
         val confPercent = (detection.confidence * 100).toInt()
@@ -281,7 +254,6 @@ class IdCardRecognitionActivity : AppCompatActivity() {
 
         val guideColor = android.graphics.Color.parseColor("#FFE621")
 
-        // UI 업데이트
         runOnUiThread {
             val shouldAnnounce = statusMessage != overlayView.checkMessage()
             overlayView.setStatusMessage(statusMessage)
@@ -330,14 +302,9 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         imageProxy.close()
     }
 
-    /**
-     * ⭐ 개선된 햅틱 점수 계산
-     * - 위치 정확도 + 크기 정확도 + 중심 정렬도 종합
-     */
     private fun calculateHapticScore(card: RectF, guide: RectF): Float {
         if (card.isEmpty) return 0f
 
-        // 1. 교차 영역 계산
         val intersection = RectF()
         if (!intersection.setIntersect(card, guide)) {
             return 0f
@@ -349,25 +316,19 @@ class IdCardRecognitionActivity : AppCompatActivity() {
 
         if (guideArea == 0f || cardArea == 0f) return 0f
 
-        // 2. 카드가 가이드 안에 얼마나 들어왔는지 (0~1)
         val insideRatio = intersectionArea / cardArea
-
-        // 3. 가이드를 얼마나 채우는지 (0~1)
         val fillRatio = intersectionArea / guideArea
-
-        // 4. 크기 비율 (카드가 너무 크거나 작으면 감점)
         val sizeRatio = cardArea / guideArea
         val sizeScore = when {
-            sizeRatio < 0.3f -> 0.1f                                    // 너무 멀어
-            sizeRatio < 0.5f -> 0.3f + (sizeRatio - 0.3f) * 1.5f       // 멀어
-            sizeRatio < 0.7f -> 0.6f + (sizeRatio - 0.5f) * 2f         // 조금 멀어
-            sizeRatio <= 1.1f -> 1.0f                                   // 적절함 ✅
-            sizeRatio <= 1.3f -> 1.0f - (sizeRatio - 1.1f) * 2f        // 조금 가까워
-            sizeRatio <= 1.5f -> 0.6f - (sizeRatio - 1.3f) * 1.5f      // 가까워
-            else -> 0.2f                                                // 너무 가까워
+            sizeRatio < 0.3f -> 0.1f
+            sizeRatio < 0.5f -> 0.3f + (sizeRatio - 0.3f) * 1.5f
+            sizeRatio < 0.7f -> 0.6f + (sizeRatio - 0.5f) * 2f
+            sizeRatio <= 1.1f -> 1.0f
+            sizeRatio <= 1.3f -> 1.0f - (sizeRatio - 1.1f) * 2f
+            sizeRatio <= 1.5f -> 0.6f - (sizeRatio - 1.3f) * 1.5f
+            else -> 0.2f
         }
 
-        // 5. 중심 정렬도 (중심이 가까울수록 높은 점수)
         val offsetX = kotlin.math.abs(card.centerX() - guide.centerX()) / guide.width()
         val offsetY = kotlin.math.abs(card.centerY() - guide.centerY()) / guide.height()
         val centerScore = (1f - (offsetX + offsetY).coerceAtMost(1f))
@@ -386,14 +347,13 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             return
         }
 
-        // 햅틱 레벨 결정 (5단계)
         val newHapticLevel = when {
-            hapticScore >= 0.90f -> 5  // 거의 완벽
-            hapticScore >= 0.75f -> 4  // 좋음
-            hapticScore >= 0.60f -> 3  // 보통
-            hapticScore >= 0.40f -> 2  // 조금 벗어남
-            hapticScore >= 0.20f -> 1  // 많이 벗어남
-            else -> 0                   // 거의 안 보임
+            hapticScore >= 0.90f -> 5
+            hapticScore >= 0.75f -> 4
+            hapticScore >= 0.60f -> 3
+            hapticScore >= 0.40f -> 2
+            hapticScore >= 0.20f -> 1
+            else -> 0
         }
 
         if (newHapticLevel != currentHapticLevel) {
@@ -403,14 +363,9 @@ class IdCardRecognitionActivity : AppCompatActivity() {
             if (newHapticLevel > 0) {
                 startVibrationPattern(newHapticLevel)
             }
-
-            Log.d(TAG, "📳 햅틱 레벨 변경: $newHapticLevel (점수: ${(hapticScore * 100).toInt()}%)")
         }
     }
 
-    /**
-     * ⭐ 진동 패턴 (레벨별)
-     */
     private fun startVibrationPattern(level: Int) {
         vibrator?.let { vib ->
             if (!vib.hasVibrator()) return
@@ -478,7 +433,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         val gray = toGrayscale(bitmap)
         val contrast = adjustContrast(gray, 1.5f)
         val bright = adjustBrightness(contrast, 10f)
-        val sharp = sharpen(bright)  // ⭐ 샤프닝 추가
+        val sharp = sharpen(bright)
 
         gray.recycle()
         contrast.recycle()
@@ -486,9 +441,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
 
         return sharp
     }
-    /**
-     * 그레이스케일 변환
-     */
+
     private fun toGrayscale(bitmap: Bitmap): Bitmap {
         val width = bitmap.width
         val height = bitmap.height
@@ -498,7 +451,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         val paint = Paint()
 
         val colorMatrix = ColorMatrix().apply {
-            setSaturation(0f)  // 채도 0 = 그레이스케일
+            setSaturation(0f)
         }
 
         paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
@@ -507,10 +460,6 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         return result
     }
 
-    /**
-     * 대비(Contrast) 조정
-     * @param contrast 1.0 = 원본, 1.5 = 50% 증가, 2.0 = 100% 증가
-     */
     private fun adjustContrast(bitmap: Bitmap, contrast: Float): Bitmap {
         val width = bitmap.width
         val height = bitmap.height
@@ -533,10 +482,6 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         return result
     }
 
-    /**
-     * 밝기(Brightness) 조정
-     * @param brightness 0 = 원본, 양수 = 밝게, 음수 = 어둡게
-     */
     private fun adjustBrightness(bitmap: Bitmap, brightness: Float): Bitmap {
         val width = bitmap.width
         val height = bitmap.height
@@ -567,7 +512,6 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         val resultPixels = IntArray(width * height)
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
 
-        // 샤프닝 커널: 중심 강조
         val kernel = floatArrayOf(
             0f, -1f, 0f,
             -1f, 5f, -1f,
@@ -610,6 +554,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         }
 
         val processedBitmap = preprocessForOcr(croppedBitmap)
+        //TODO inputImage -> croppedBitmap으로 바꾸기
         val inputImage = InputImage.fromBitmap(processedBitmap, 0)
 
         textRecognizer.process(inputImage)
@@ -695,21 +640,15 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         return RectF(left, top, left + guideWidth, top + guideHeight)
     }
 
-    /**
-     * ⭐ OverlayView 가이드라인을 비트맵 좌표로 변환
-     */
     private fun getGuideRectInBitmapCoords(bitmapWidth: Int, bitmapHeight: Int): RectF {
-        // OverlayView의 가이드라인 (화면 좌표)
         val viewGuide = overlayView.getGuideRect()
         val viewWidth = overlayView.width.toFloat()
         val viewHeight = overlayView.height.toFloat()
 
         if (viewWidth <= 0 || viewHeight <= 0) {
-            // 뷰가 아직 측정 안 됐으면 기본값 사용
             return calculateGuideRect(bitmapWidth, bitmapHeight)
         }
 
-        // 화면 좌표 → 비트맵 좌표 역변환 (centerCrop 방식)
         val viewAspect = viewWidth / viewHeight
         val bitmapAspect = bitmapWidth.toFloat() / bitmapHeight
 
@@ -718,18 +657,15 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         val offsetY: Float
 
         if (bitmapAspect > viewAspect) {
-            // 비트맵이 더 넓음 → 좌우가 잘림
             scale = viewHeight / bitmapHeight
             offsetX = (bitmapWidth * scale - viewWidth) / 2f
             offsetY = 0f
         } else {
-            // 비트맵이 더 높음 → 상하가 잘림
             scale = viewWidth / bitmapWidth
             offsetX = 0f
             offsetY = (bitmapHeight * scale - viewHeight) / 2f
         }
 
-        // 화면 좌표를 비트맵 좌표로 역변환
         val left = (viewGuide.left + offsetX) / scale
         val top = (viewGuide.top + offsetY) / scale
         val right = (viewGuide.right + offsetX) / scale

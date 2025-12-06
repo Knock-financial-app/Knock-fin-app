@@ -305,10 +305,9 @@ class OverlayView @JvmOverloads constructor(
     }
 
     private fun transformPoint(imagePoint: PointF): PointF {
-        // CenterCrop 방식으로 변환
         val scaleX = width.toFloat() / imageWidth
         val scaleY = height.toFloat() / imageHeight
-        val scale = maxOf(scaleX, scaleY)  // ⭐ centerCrop은 maxOf 사용
+        val scale = maxOf(scaleX, scaleY)
 
         val offsetX = (width - imageWidth * scale) / 2f
         val offsetY = (height - imageHeight * scale) / 2f
@@ -319,10 +318,6 @@ class OverlayView @JvmOverloads constructor(
         )
     }
 
-    /**
-     * ⭐ CenterCrop 방식으로 좌표 변환
-     * 카메라 프리뷰가 화면을 꽉 채우는 방식에 맞춤
-     */
     private fun transformRectCenterCrop(imageRect: Rect): RectF {
         val viewWidth = width.toFloat()
         val viewHeight = height.toFloat()
@@ -341,12 +336,10 @@ class OverlayView @JvmOverloads constructor(
         val offsetY: Float
 
         if (imageAspect > viewAspect) {
-            // 이미지가 더 넓음 → 좌우가 잘림
             scale = viewHeight / imgHeight
             offsetX = (imgWidth * scale - viewWidth) / 2f
             offsetY = 0f
         } else {
-            // 이미지가 더 높음 → 상하가 잘림
             scale = viewWidth / imgWidth
             offsetX = 0f
             offsetY = (imgHeight * scale - viewHeight) / 2f

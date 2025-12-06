@@ -40,9 +40,8 @@ class IdCardDetector(private val context: Context) {
             }
             interpreter = Interpreter(model, options)
             outputShape = interpreter?.getOutputTensor(0)?.shape()
-            Log.d(TAG, "✅ 모델 로드 완료, 출력 shape: ${outputShape?.contentToString()}")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ 모델 로드 실패: ${e.message}", e)
+            Log.e(TAG, "모델 로드 실패: ${e.message}", e)
         }
     }
 
@@ -55,25 +54,18 @@ class IdCardDetector(private val context: Context) {
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
     }
 
-    /**
-     * Letterbox 정보를 담는 데이터 클래스
-     */
     data class LetterboxInfo(
-        val scale: Float,      // 스케일 비율
-        val padX: Float,       // X축 패딩
-        val padY: Float,       // Y축 패딩
+        val scale: Float,
+        val padX: Float,
+        val padY: Float,
         val originalWidth: Int,
         val originalHeight: Int
     )
 
-    /**
-     * Letterbox 리사이즈 - 비율 유지하면서 640x640에 맞춤
-     */
     private fun letterboxResize(bitmap: Bitmap): Pair<Bitmap, LetterboxInfo> {
         val originalWidth = bitmap.width
         val originalHeight = bitmap.height
 
-        // 스케일 계산 (비율 유지)
         val scale = min(
             INPUT_SIZE.toFloat() / originalWidth,
             INPUT_SIZE.toFloat() / originalHeight
@@ -82,17 +74,14 @@ class IdCardDetector(private val context: Context) {
         val newWidth = (originalWidth * scale).toInt()
         val newHeight = (originalHeight * scale).toInt()
 
-        // 패딩 계산 (중앙 정렬)
         val padX = (INPUT_SIZE - newWidth) / 2f
         val padY = (INPUT_SIZE - newHeight) / 2f
 
-        // 리사이즈
         val resized = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
 
-        // 640x640 캔버스에 중앙 배치 (회색 패딩)
         val letterboxed = Bitmap.createBitmap(INPUT_SIZE, INPUT_SIZE, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(letterboxed)
-        canvas.drawColor(Color.rgb(114, 114, 114))  // YOLO 표준 패딩 색상
+        canvas.drawColor(Color.rgb(114, 114, 114))
         canvas.drawBitmap(resized, padX, padY, null)
 
         resized.recycle()
@@ -110,17 +99,12 @@ class IdCardDetector(private val context: Context) {
         return Pair(letterboxed, info)
     }
 
-    /**
-     * Letterbox 좌표를 원본 이미지 좌표로 역변환
-     */
     private fun letterboxToOriginal(box: RectF, info: LetterboxInfo): RectF {
-        // 1. 패딩 제거 (640x640 기준에서 실제 이미지 영역으로)
         val x1 = (box.left - info.padX) / info.scale
         val y1 = (box.top - info.padY) / info.scale
         val x2 = (box.right - info.padX) / info.scale
         val y2 = (box.bottom - info.padY) / info.scale
 
-        // 2. 원본 이미지 범위로 클램핑
         return RectF(
             x1.coerceIn(0f, info.originalWidth.toFloat()),
             y1.coerceIn(0f, info.originalHeight.toFloat()),
@@ -133,10 +117,8 @@ class IdCardDetector(private val context: Context) {
         val interpreter = this.interpreter ?: return null
         val shape = outputShape ?: return null
 
-        // 1. Letterbox 리사이즈 (비율 유지!)
         val (letterboxed, letterboxInfo) = letterboxResize(bitmap)
 
-        // 2. 입력 버퍼 준비
         val inputBuffer = ByteBuffer.allocateDirect(1 * INPUT_SIZE * INPUT_SIZE * 3 * 4)
         inputBuffer.order(ByteOrder.nativeOrder())
         inputBuffer.rewind()
@@ -152,21 +134,17 @@ class IdCardDetector(private val context: Context) {
 
         letterboxed.recycle()
 
-        // 3. 출력 버퍼
         val outputBuffer = ByteBuffer.allocateDirect(shape[0] * shape[1] * shape[2] * 4)
         outputBuffer.order(ByteOrder.nativeOrder())
 
-        // 4. 추론
         inputBuffer.rewind()
         outputBuffer.rewind()
         interpreter.run(inputBuffer, outputBuffer)
 
-        // 5. 결과 파싱
         outputBuffer.rewind()
         val output = FloatArray(shape[0] * shape[1] * shape[2])
         outputBuffer.asFloatBuffer().get(output)
 
-        // 6. 후처리 (letterbox 정보 전달)
         return postProcess(output, shape, letterboxInfo)
     }
 
@@ -208,7 +186,6 @@ class IdCardDetector(private val context: Context) {
             }
 
             if (confidence >= CONFIDENCE_THRESHOLD) {
-                // 0~1 정규화 → 640x640 픽셀 좌표
                 val left640 = (xc - w / 2) * INPUT_SIZE
                 val top640 = (yc - h / 2) * INPUT_SIZE
                 val right640 = (xc + w / 2) * INPUT_SIZE
@@ -216,7 +193,6 @@ class IdCardDetector(private val context: Context) {
 
                 val box640 = RectF(left640, top640, right640, bottom640)
 
-                // Letterbox 역변환 → 원본 이미지 좌표
                 val boxOriginal = letterboxToOriginal(box640, letterboxInfo)
 
                 val boxWidth = boxOriginal.width()
@@ -231,15 +207,8 @@ class IdCardDetector(private val context: Context) {
             }
         }
 
-        Log.d(TAG, "최대 신뢰도: ${"%.4f".format(maxConf)} (idx=$maxIdx)")
-        Log.d(TAG, "탐지 결과: ${results.size}개")
-
         val nmsResults = applyNMS(results)
         val best = nmsResults.maxByOrNull { it.confidence }
-
-        if (best != null) {
-            Log.d(TAG, "✅ 최종: conf=${"%.1f".format(best.confidence * 100)}%, box=[${best.boundingBox.left.toInt()}, ${best.boundingBox.top.toInt()}, ${best.boundingBox.right.toInt()}, ${best.boundingBox.bottom.toInt()}]")
-        }
 
         return best
     }
