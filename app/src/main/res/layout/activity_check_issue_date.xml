@@ -3,19 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/Theme_color_main">>
 
     <ImageButton
         android:id="@+id/PrevButton"
-        android:layout_width="43dp"
-        android:layout_height="45dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
-        android:backgroundTint="#00FFFFFF"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_margin="30dp"
+        android:backgroundTint="@color/Theme_color_main"
         android:src = "@drawable/ic_arrow_left"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint = "@color/black"/>
+        app:tint="@color/prev_button"/>
 
     <TextView
         android:id="@+id/Title"
@@ -24,7 +24,8 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:text="발급일자"
-        android:textSize="18sp"
+        android:textColor="@color/main_text"
+        android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/PrevButton" />
@@ -37,6 +38,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="24dp"
         android:text="ⓘ 직접 수정하려면 입력된 숫자를 눌러주세요."
+        android:textColor="@color/main_text"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -50,6 +52,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
         android:text="발급연도"
+        android:textColor="@color/main_text"
         android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/NoticeText" />
@@ -66,7 +69,7 @@
         android:inputType="number"
         android:maxLength="4"
         android:paddingStart="16dp"
-        android:textColor="#000000"
+        android:textColor="@color/input_text"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -78,8 +81,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="14dp"
         android:text="발급월"
+        android:textColor="@color/main_text"
         android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/YearTextbox" />
@@ -96,7 +100,7 @@
         android:inputType="number"
         android:maxLength="2"
         android:paddingStart="16dp"
-        android:textColor="#000000"
+        android:textColor="@color/input_text"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -110,6 +114,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:text="발급일"
+        android:textColor="@color/main_text"
         android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/MonthTextbox" />
@@ -126,22 +131,25 @@
         android:inputType="number"
         android:maxLength="2"
         android:paddingStart="16dp"
-        android:textColor="#000000"
+        android:textColor="@color/input_text"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/DayLabel" />
 
+    <!-- 확인 버튼 -->
     <Button
         android:id="@+id/NextButton"
         android:layout_width="0dp"
-        android:layout_height="46dp"
+        android:layout_height="56dp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="24dp"
-        android:backgroundTint="#FFE621"
+        android:layout_marginBottom="48dp"
+        android:background="@drawable/bg_tab_active"
         android:text="다음"
-        android:textColor="#000000"
+        android:textColor="@color/input_text"
+        android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

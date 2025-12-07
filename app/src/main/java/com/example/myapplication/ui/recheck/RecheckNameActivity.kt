@@ -1,16 +1,12 @@
 package com.example.myapplication.ui.recheck
 
-import android.app.Activity
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -18,11 +14,9 @@ import androidx.lifecycle.lifecycleScope
 import com.example.myapplication.BuildConfig
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
-import com.example.myapplication.ui.check.CheckDriverLicenseCardActivity
-import com.example.myapplication.ui.check.CheckResidentNumberActivity
-import com.example.myapplication.ui.check.CheckResidentRegistrationCardActivity
+import com.example.myapplication.ui.result.CheckDriverLicenseCardActivity
+import com.example.myapplication.ui.result.CheckResidentRegistrationCardActivity
 import com.google.ai.client.generativeai.GenerativeModel
-import com.google.android.material.internal.ViewUtils.showKeyboard
 import kotlinx.coroutines.launch
 import kotlin.jvm.java
 

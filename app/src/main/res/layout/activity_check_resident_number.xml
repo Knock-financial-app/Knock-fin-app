@@ -3,19 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/Theme_color_main">>
 
     <ImageButton
         android:id="@+id/PrevButton"
-        android:layout_width="43dp"
-        android:layout_height="45dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
-        android:backgroundTint="#00FFFFFF"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_margin="30dp"
+        android:backgroundTint="@color/Theme_color_main"
         android:src="@drawable/ic_arrow_left"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/black"/>
+        app:tint="@color/prev_button"/>
 
     <TextView
         android:id="@+id/Title"
@@ -24,7 +24,8 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:text="주민등록번호"
-        android:textSize="18sp"
+        android:textColor="@color/main_text"
+        android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/PrevButton" />
@@ -37,7 +38,8 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="24dp"
         android:text="ⓘ 주민등록번호는 재촬영만 가능합니다."
-        android:textSize="12sp"
+        android:textColor="@color/main_text"
+        android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/Title" />
@@ -45,15 +47,15 @@
     <LinearLayout
         android:id="@+id/RRNContainer"
         android:layout_width="0dp"
-        android:layout_height="48dp"
+        android:layout_height="56dp"
         android:layout_marginStart="24dp"
         android:layout_marginTop="12dp"
         android:layout_marginEnd="24dp"
         android:background="@drawable/textbox_border"
         android:gravity="center"
         android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/NoticeText">
@@ -68,7 +70,7 @@
             android:gravity="center"
             android:inputType="number"
             android:maxLength="6"
-            android:textColor="#000000"
+            android:textColor="@color/input_text"
             android:textSize="16sp" />
 
         <TextView
@@ -76,8 +78,8 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:text=" - "
-            android:textColor="#000000"
-            android:textSize="18sp" />
+            android:textColor="@color/input_text"
+            android:textSize="16sp" />
 
         <!-- 뒷자리 (50%) -->
         <LinearLayout
@@ -95,7 +97,7 @@
                 android:gravity="center"
                 android:inputType="number"
                 android:maxLength="1"
-                android:textColor="#000000"
+                android:textColor="@color/input_text"
                 android:textSize="16sp" />
 
             <TextView
@@ -104,36 +106,45 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:text="●●●●●●"
-                android:textColor="#000000"
+                android:textColor="@color/input_text"
                 android:textSize="16sp" />
 
         </LinearLayout>
 
     </LinearLayout>
 
+    <!-- 재촬영 버튼 -->
     <Button
         android:id="@+id/ReCameraButton"
-        android:layout_width="154dp"
-        android:layout_height="46dp"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
         android:layout_marginStart="24dp"
-        android:layout_marginBottom="24dp"
-        android:backgroundTint="#BABAC5"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="50dp"
+        android:background="@drawable/bg_tab_inactive"
         android:text="재촬영"
-        android:textColor="#000000"
-        android:textSize="14sp"
+        android:textColor="@color/input_text"
+        android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/NextButton"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- 확인 버튼 -->
     <Button
         android:id="@+id/NextButton"
-        android:layout_width="154dp"
-        android:layout_height="46dp"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginStart="8dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="24dp"
-        android:backgroundTint="#FFE621"
+        android:layout_marginBottom="50dp"
+        android:background="@drawable/bg_tab_active"
         android:text="다음"
-        android:textColor="#000000"
+        android:textColor="@color/input_text"
+        android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/ReCameraButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
