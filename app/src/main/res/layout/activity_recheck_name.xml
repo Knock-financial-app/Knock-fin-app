@@ -4,19 +4,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/Theme_color_main">
+    android:background="@color/Theme_color_main">>
 
     <ImageButton
         android:id="@+id/PrevButton"
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:background="@color/Theme_color_main"
-        android:src="@drawable/ic_arrow_left"
+        android:src="@drawable/ic_cancel"
         android:layout_margin="30dp"
-        app:tint="@color/prev_button"
         android:clickable="true"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/prev_button"/>
 
     <TextView
         android:id="@+id/Name"
@@ -48,15 +48,17 @@
     <EditText
         android:id="@+id/NameTextbox"
         android:layout_width="0dp"
-        android:layout_height="48dp"
+        android:layout_height="56dp"
         android:layout_marginStart="24dp"
         android:layout_marginTop="12dp"
         android:layout_marginEnd="24dp"
         android:background="@drawable/textbox_border"
-        android:padding="12dp"
+        android:gravity="center_vertical"
+        android:paddingStart="30dp"
+        android:paddingEnd="16dp"
         android:singleLine="true"
         android:textColor="@color/input_text"
-        android:textSize="16sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/noticeText" />
@@ -68,9 +70,9 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="24dp"
-        android:text="AI 추천 이름 생성 중 ..."
+        android:text="추천 이름"
         android:textColor="@color/main_text"
-        android:textSize="12sp"
+        android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/NameTextbox" />
@@ -117,6 +119,7 @@
         app:layout_constraintHorizontal_bias="0"
         app:layout_constraintTop_toBottomOf="@+id/AiText" />
 
+    <!-- 확인 버튼 -->
     <Button
         android:id="@+id/NextButton"
         android:layout_width="0dp"

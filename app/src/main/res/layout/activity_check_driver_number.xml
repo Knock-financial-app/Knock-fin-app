@@ -52,9 +52,9 @@
         android:layout_marginTop="12dp"
         android:layout_marginEnd="24dp"
         android:background="@drawable/textbox_border"
-        android:gravity="center"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="12dp"
+        android:paddingStart="30dp"
         android:paddingEnd="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -63,10 +63,10 @@
         <!-- 첫 번째: 2자리 -->
         <EditText
             android:id="@+id/LicenseNum1"
-            android:layout_width="35dp"
+            android:layout_width="24dp"
             android:layout_height="match_parent"
             android:background="@null"
-            android:gravity="center"
+            android:gravity="center_vertical"
             android:inputType="number"
             android:maxLength="2"
             android:textColor="@color/input_text"
@@ -75,7 +75,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:gravity="center"
+            android:gravity="center_vertical"
             android:text=" - "
             android:textColor="@color/input_text"
             android:textSize="16sp" />
@@ -83,10 +83,10 @@
         <!-- 두 번째: 2자리 -->
         <EditText
             android:id="@+id/LicenseNum2"
-            android:layout_width="35dp"
+            android:layout_width="24dp"
             android:layout_height="match_parent"
             android:background="@null"
-            android:gravity="center"
+            android:gravity="center_vertical"
             android:inputType="number"
             android:maxLength="2"
             android:textColor="@color/input_text"
@@ -95,7 +95,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:gravity="center"
+            android:gravity="center_vertical"
             android:text=" - "
             android:textColor="@color/input_text"
             android:textSize="16sp" />
@@ -103,10 +103,10 @@
         <!-- 세 번째: 6자리 -->
         <EditText
             android:id="@+id/LicenseNum3"
-            android:layout_width="70dp"
+            android:layout_width="60dp"
             android:layout_height="match_parent"
             android:background="@null"
-            android:gravity="center"
+            android:gravity="center_vertical"
             android:inputType="number"
             android:maxLength="6"
             android:textColor="@color/input_text"
@@ -115,7 +115,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:gravity="center"
+            android:gravity="center_vertical"
             android:text=" - "
             android:textColor="@color/input_text"
             android:textSize="16sp" />
@@ -123,10 +123,10 @@
         <!-- 네 번째: 2자리 -->
         <EditText
             android:id="@+id/LicenseNum4"
-            android:layout_width="35dp"
+            android:layout_width="24dp"
             android:layout_height="match_parent"
             android:background="@null"
-            android:gravity="center"
+            android:gravity="center_vertical"
             android:inputType="number"
             android:maxLength="2"
             android:textColor="@color/input_text"
