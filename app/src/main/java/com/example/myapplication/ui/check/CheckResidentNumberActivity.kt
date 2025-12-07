@@ -50,9 +50,6 @@ class CheckResidentNumberActivity : AppCompatActivity() {
         }
 
         nextButton.setOnClickListener{
-            Log.d("IdCardInfo", "isResidentCard: ${IdCardInfo.current.isResidentCard()}")
-            Log.d("IdCardInfo", "isDriverLicense: ${IdCardInfo.current.isDriverLicense()}")
-
             saveResidentNumber()
             if (isResidentaCard) {
                 val intent = Intent(this, CheckIssueDateActivity::class.java)

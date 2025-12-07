@@ -48,15 +48,17 @@
             android:exported="true"/>
         <activity android:name=".ui.check.CheckIssueDateActivity"
             android:exported="true"/>
-        <activity android:name=".ui.check.CheckResidentRegistrationCardActivity"
+        <activity android:name=".ui.result.CheckResidentRegistrationCardActivity"
             android:exported="true"/>
-        <activity android:name=".ui.check.CheckDriverLicenseCardActivity"
+        <activity android:name=".ui.result.CheckDriverLicenseCardActivity"
             android:exported="true"/>
         <activity android:name=".ui.recheck.RecheckDriverNumberActivity"
             android:exported="true"/>
         <activity android:name=".ui.recheck.RecheckIssueDateActivity"
             android:exported="true"/>
         <activity android:name=".ui.recheck.RecheckNameActivity"
+            android:exported="true"/>
+        <activity android:name=".ui.result.RecognitionSuccessActivity"
             android:exported="true"/>
     </application>
 

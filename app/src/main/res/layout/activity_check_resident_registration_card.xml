@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:background="@color/Theme_color_main">
 
     <!-- 닫기 버튼 -->
     <ImageButton
@@ -11,11 +11,12 @@
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:layout_margin="30dp"
-        android:clickable="true"
+        android:background="@color/Theme_color_main"
+    android:clickable="true"
         android:src="@drawable/ic_cancel"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/black" />
+        app:tint="@color/prev_button"/>
 
     <!-- 제목 -->
     <TextView
@@ -25,6 +26,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:text="등록된 정보를 확인해주세요"
+        android:textColor="@color/main_text"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -63,8 +65,8 @@
         android:layout_marginEnd="24dp"
         android:lineSpacingExtra="4dp"
         android:text="신분증 정보를 확인하고 직접 수정하거나 재촬영하세요.\n입력된 정보를 누르면 수정할 수 있습니다."
-        android:textColor="#888888"
-        android:textSize="12sp"
+        android:textColor="@color/main_text"
+        android:textSize="11sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/CardIdImage" />
@@ -77,8 +79,8 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
         android:text="이름"
-        android:textColor="#888888"
-        android:textSize="14sp"
+        android:textColor="@color/main_text"
+        android:textSize="12sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/NoticeText" />
 
@@ -102,8 +104,8 @@
             android:gravity="center_vertical"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
-            android:textColor="#000000"
-            android:textSize="16sp" />
+            android:textColor="@color/input_text"
+            android:textSize="14sp" />
 
         <View
             android:id="@+id/NameClickOverlay"
@@ -120,8 +122,8 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:text="주민등록번호"
-        android:textColor="#888888"
-        android:textSize="14sp"
+        android:textColor="@color/main_text"
+        android:textSize="12sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/NameBox" />
 
@@ -148,23 +150,23 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:textColor="#000000"
-            android:textSize="16sp" />
+            android:textColor="@color/input_text"
+            android:textSize="14sp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="-"
-            android:textColor="#000000"
-            android:textSize="18sp" />
+            android:textColor="@color/input_text"
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/RRNBackFirstEditText"
             android:layout_width="30dp"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:textColor="#000000"
-            android:textSize="16sp" />
+            android:textColor="@color/input_text"
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/RRNBackMasked"
@@ -173,8 +175,8 @@
             android:layout_weight="1"
             android:gravity="start"
             android:text="●●●●●●"
-            android:textColor="#000000"
-            android:textSize="16sp" />
+            android:textColor="@color/input_text"
+            android:textSize="14sp" />
 
     </LinearLayout>
 
@@ -186,8 +188,8 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:text="발급일자"
-        android:textColor="#888888"
-        android:textSize="14sp"
+        android:textColor="@color/main_text"
+        android:textSize="12sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/RRNBox" />
 
@@ -219,15 +221,15 @@
                 android:layout_weight="1.5"
                 android:gravity="center"
                 android:hint="YYYY"
-                android:textColor="#000000"
-                android:textSize="16sp" />
+                android:textColor="@color/input_text"
+                android:textSize="14sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="."
-                android:textColor="#000000"
-                android:textSize="18sp" />
+                android:textColor="@color/input_text"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/IssueDateMonthTextView"
@@ -236,15 +238,15 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:hint="MM"
-                android:textColor="#000000"
-                android:textSize="16sp" />
+                android:textColor="@color/input_text"
+                android:textSize="14sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="."
-                android:textColor="#000000"
-                android:textSize="18sp" />
+                android:textColor="@color/input_text"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/IssueDateDayTextView"
@@ -253,8 +255,8 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:hint="DD"
-                android:textColor="#000000"
-                android:textSize="16sp" />
+                android:textColor="@color/input_text"
+                android:textSize="14sp" />
 
         </LinearLayout>
 
@@ -268,28 +270,35 @@
     <!-- 재촬영 버튼 -->
     <Button
         android:id="@+id/ReCameraButton"
-        android:layout_width="154dp"
-        android:layout_height="46dp"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
         android:layout_marginStart="24dp"
-        android:layout_marginBottom="24dp"
-        android:backgroundTint="#BABAC5"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="50dp"
+        android:background="@drawable/bg_tab_inactive"
         android:text="재촬영"
-        android:textColor="#000000"
-        android:textSize="14sp"
+        android:textColor="@color/input_text"
+        android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/NextButton"
         app:layout_constraintStart_toStartOf="parent" />
 
     <!-- 확인 버튼 -->
     <Button
         android:id="@+id/NextButton"
-        android:layout_width="154dp"
-        android:layout_height="46dp"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginStart="8dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="24dp"
-        android:backgroundTint="#FFE621"
-        android:text="확인"
-        android:textColor="#000000"
+        android:layout_marginBottom="50dp"
+        android:background="@drawable/bg_tab_active"
+        android:text="다음"
+        android:textColor="@color/input_text"
+        android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/ReCameraButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

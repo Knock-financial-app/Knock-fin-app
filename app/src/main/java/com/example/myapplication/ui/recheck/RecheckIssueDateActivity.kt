@@ -10,8 +10,8 @@ import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
-import com.example.myapplication.ui.check.CheckDriverLicenseCardActivity
-import com.example.myapplication.ui.check.CheckResidentRegistrationCardActivity
+import com.example.myapplication.ui.result.CheckDriverLicenseCardActivity
+import com.example.myapplication.ui.result.CheckResidentRegistrationCardActivity
 import kotlin.jvm.java
 
 class RecheckIssueDateActivity : AppCompatActivity() {

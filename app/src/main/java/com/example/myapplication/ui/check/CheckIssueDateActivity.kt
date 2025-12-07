@@ -11,7 +11,7 @@ import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
-import com.google.android.material.internal.ViewUtils.showKeyboard
+import com.example.myapplication.ui.result.CheckDriverLicenseCardActivity
 import kotlin.jvm.java
 
 class CheckIssueDateActivity : AppCompatActivity() {
@@ -63,16 +63,16 @@ class CheckIssueDateActivity : AppCompatActivity() {
 
         nextButton.setOnClickListener{
             saveIssueDate()
-            val intent = Intent(this, CheckResidentRegistrationCardActivity::class.java)
+            val intent = Intent(this, CheckDriverLicenseCardActivity::class.java)
             startActivity(intent)
-            if (isResidentaCard) {
-                val intent = Intent(this, CheckResidentRegistrationCardActivity::class.java)
-                startActivity(intent)
-            }
-            else if (isDriverLicense) {
-                val intent = Intent(this, CheckDriverLicenseCardActivity::class.java)
-                startActivity(intent)
-            }
+//            if (isResidentaCard) {
+//                val intent = Intent(this, CheckResidentRegistrationCardActivity::class.java)
+//                startActivity(intent)
+//            }
+//            else if (isDriverLicense) {
+//                val intent = Intent(this, CheckDriverLicenseCardActivity::class.java)
+//                startActivity(intent)
+//            }
         }
 
         val dateFull = IdCardInfo.current.issueDate

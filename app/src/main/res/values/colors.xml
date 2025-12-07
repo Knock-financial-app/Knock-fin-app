@@ -11,4 +11,7 @@
     <color name="Theme_color_main">#0F113A</color>
     <color name="Theme_color_point">#FFE621</color>
     <color name="aiNameButton_default">#BABAC5</color>
+    <color name="main_text">#FFFFFFFF</color>
+    <color name="input_text">#FF000000</color>
+    <color name="prev_button">#6B6B6B</color>
 </resources>
