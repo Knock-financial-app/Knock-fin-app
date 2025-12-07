@@ -16,6 +16,7 @@ import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
 import com.example.myapplication.ui.result.CheckDriverLicenseCardActivity
 import com.example.myapplication.ui.result.CheckResidentRegistrationCardActivity
+import com.example.myapplication.util.NameVariationGenerator
 import com.google.ai.client.generativeai.GenerativeModel
 import kotlinx.coroutines.launch
 import kotlin.jvm.java
@@ -30,10 +31,7 @@ class RecheckNameActivity : AppCompatActivity() {
     private lateinit var aiNameButton3: Button
     private lateinit var aiText : TextView
 
-    private val generativeModel = GenerativeModel(
-        modelName = "gemini-2.0-flash",
-        apiKey = BuildConfig.GEMINI_API_KEY
-    )
+    private val nameGenerator = NameVariationGenerator()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,44 +84,19 @@ class RecheckNameActivity : AppCompatActivity() {
         setupButtonClickListeners()
     }
     private fun genterateAiNames() {
-        lifecycleScope.launch {
-            try {
-                aiText.text = "AI 추천 이름 생성 중 ..."
+        val currentName = nameTextbox.text.toString()
 
-                val prompt = """
-                    원본 이름: ${nameTextbox.text}
-                    
-                    위 한국 이름과 비슷한 이름 3개 추천해주세요.
-                    
-                    규칙:
-                    - 이름 부분에서 1글자만 다르게 변경
-                    - 발음이 비슷하거나 모양이 비슷한 글자로 변경
-                    - 실제로 사용되는 자연스러운 한국 이름이어야 함
-                    
-                    예시:
-                    - 이은주 -> 이은조, 이은지, 이연주
-                    
-                    출력 형식: 쉼표로 구분해서 이름만 출력 (다른 설명 없이)
-                """.trimIndent()
+        val names = nameGenerator.generateVariations(currentName, 3)
 
-                val response = generativeModel.generateContent(prompt)
-                val names = response.text?.split(",")?.map {it.trim()} ?: listOf()
+        if (names.size >= 3) {
+            aiNameButton1.text = names[0]
+            aiNameButton2.text = names[1]
+            aiNameButton3.text = names[2]
 
-                if (names.size >= 3) {
-                    aiNameButton1.text = names[0]
-                    aiNameButton2.text = names[1]
-                    aiNameButton3.text = names[2]
-
-                    showAiNameButtons()
-                    aiText.text = "AI 추천 이름"
-                } else {
-                    aiText.text = "이름 생성 실패"
-                }
-
-            } catch (e: Exception) {
-                aiText.text = "오류 발생: ${e.message}"
-                e.printStackTrace()
-            }
+            showAiNameButtons()
+            aiText.text = "추천 이름"
+        } else {
+            aiText.text = "추천 이름 생성 실패"
         }
     }
 

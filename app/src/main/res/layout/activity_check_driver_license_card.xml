@@ -40,6 +40,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="24dp"
+        android:backgroundTint="@color/Theme_color_main"
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -101,7 +102,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center_vertical"
-            android:paddingStart="12dp"
+            android:paddingStart="30dp"
             android:paddingEnd="12dp"
             android:textColor="@color/input_text"
             android:textSize="14sp" />
@@ -137,7 +138,7 @@
         android:background="@drawable/textbox_border"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="12dp"
+        android:paddingStart="30dp"
         android:paddingEnd="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -145,35 +146,34 @@
 
         <TextView
             android:id="@+id/RRNFrontEditText"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
+            android:gravity="center_vertical"
             android:textColor="@color/input_text"
             android:textSize="14sp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="-"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:text=" - "
             android:textColor="@color/input_text"
             android:textSize="14sp" />
 
         <TextView
             android:id="@+id/RRNBackFirstEditText"
-            android:layout_width="25dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:gravity="center"
-            android:textColor="#000000"
+            android:gravity="center_vertical"
+            android:textColor="@color/input_text"
             android:textSize="14sp" />
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="start"
             android:text="●●●●●●"
-            android:textColor="#000000"
+            android:textColor="@color/input_text"
             android:textSize="14sp" />
 
     </LinearLayout>
@@ -207,65 +207,71 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingStart="12dp"
+            android:paddingStart="30dp"
             android:paddingEnd="12dp">
 
             <TextView
                 android:id="@+id/LicenseNum1"
-                android:layout_width="30dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:gravity="center"
+                android:gravity="center_vertical"
                 android:textColor="@color/input_text"
                 android:textSize="14sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="-"
+                android:gravity="center_vertical"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:text=" - "
                 android:textColor="@color/input_text"
                 android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/LicenseNum2"
-                android:layout_width="30dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:gravity="center"
+                android:gravity="center_vertical"
                 android:textColor="@color/input_text"
                 android:textSize="14sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="-"
+                android:gravity="center_vertical"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:text=" - "
                 android:textColor="@color/input_text"
                 android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/LicenseNum3"
-                android:layout_width="60dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:gravity="center"
+                android:gravity="center_vertical"
                 android:textColor="@color/input_text"
                 android:textSize="14sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="-"
+                android:gravity="center_vertical"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:text=" - "
                 android:textColor="@color/input_text"
                 android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/LicenseNum4"
-                android:layout_width="30dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:gravity="center"
-                android:textColor="#000000"
+                android:gravity="center_vertical"
+                android:textColor="@color/input_text"
                 android:textSize="14sp" />
 
         </LinearLayout>
@@ -308,15 +314,14 @@
             android:layout_height="match_parent"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingStart="12dp"
+            android:paddingStart="30dp"
             android:paddingEnd="12dp">
 
             <TextView
                 android:id="@+id/IssueDateYearTextView"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_weight="1.5"
-                android:gravity="center"
+                android:gravity="center_vertical"
                 android:hint="YYYY"
                 android:textColor="@color/input_text"
                 android:textSize="14sp" />
@@ -324,16 +329,15 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="."
-                android:textColor="#000000"
+                android:text=". "
+                android:textColor="@color/input_text"
                 android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/IssueDateMonthTextView"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
+                android:gravity="center_vertical"
                 android:hint="MM"
                 android:textColor="@color/input_text"
                 android:textSize="14sp" />
@@ -341,17 +345,23 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="."
-                android:textColor="#000000"
+                android:text=". "
+                android:textColor="@color/input_text"
                 android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/IssueDateDayTextView"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
+                android:gravity="center_vertical"
                 android:hint="DD"
+                android:textColor="@color/input_text"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=". "
                 android:textColor="@color/input_text"
                 android:textSize="14sp" />
 

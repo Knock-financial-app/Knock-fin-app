@@ -36,7 +36,7 @@ class RecheckDriverNumberActivity : AppCompatActivity() {
         nextButton = findViewById<Button>(R.id.NextButton)
         reCameraButton = findViewById<Button>(R.id.ReCameraButton)
 
-        val isResidentaCard = IdCardInfo.current.isResidentCard()
+        val isResidentCard = IdCardInfo.current.isResidentCard()
         val isDriverLicense = IdCardInfo.current.isDriverLicense()
 
         licenseNum1.setOnClickListener {
@@ -61,7 +61,7 @@ class RecheckDriverNumberActivity : AppCompatActivity() {
 
         prevButton.setOnClickListener{
             saveDriver()
-            if (isResidentaCard) {
+            if (isResidentCard) {
                 val intent = Intent(this, CheckResidentRegistrationCardActivity::class.java)
                 startActivity(intent)
             }
@@ -79,7 +79,7 @@ class RecheckDriverNumberActivity : AppCompatActivity() {
 
         nextButton.setOnClickListener{
             saveDriver()
-            if (isResidentaCard) {
+            if (isResidentCard) {
                 val intent = Intent(this, CheckResidentRegistrationCardActivity::class.java)
                 startActivity(intent)
             }
