@@ -23,7 +23,9 @@ class RecognitionSuccessActivity : AppCompatActivity() {
         nameText.text = "${IdCardInfo.current.name}님의 신분을 확인했어요."
 
         Handler(Looper.getMainLooper()).postDelayed({
-            startActivity(Intent(this, MainActivity::class.java))
+            startActivity(Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            })
             finish()
         }, 1500)
     }

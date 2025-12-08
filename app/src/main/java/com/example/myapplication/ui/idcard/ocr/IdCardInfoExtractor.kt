@@ -11,10 +11,10 @@ class IdCardInfoExtractor {
         const val ID_TYPE_DRIVER = 2
 
         private val DRIVER_LICENSE_NUMBER_PATTERN =
-            Regex("(\\d{2})[\\s\\-.,]*(\\d{2})[\\s\\-.,]*(\\d{6})[\\s\\-.,]*(\\d{2})")
+            Regex("(\\d{2})[\\s\\-.,:;]*(\\d{2})[\\s\\-.,:;]*(\\d{6})[\\s\\-.,:;]*(\\d{2})")
 
         private val RESIDENT_NUMBER_PATTERN =
-            Regex("(\\d[\\s]*\\d[\\s]*\\d[\\s]*\\d[\\s]*\\d[\\s]*\\d)[\\s\\-.,]*([1-4][\\s]*\\d[\\s]*\\d[\\s]*\\d[\\s]*\\d[\\s]*\\d[\\s]*\\d)")
+            Regex("(\\d[\\s\\-.,:;]*\\d[\\s\\-.,:;]*\\d[\\s\\-.,:;]*\\d[\\s\\-.,:;]*\\d[\\s\\-.,:;]*\\d)[\\s\\-.,:;]*([1-4][\\s\\-.,:;]*\\d[\\s\\-.,:;]*\\d[\\s\\-.,:;]*\\d[\\s\\-.,:;]*\\d[\\s\\-.,:;]*\\d[\\s\\-.,:;]*\\d)")
 
         private val NAME_PATTERN = Regex("[가-힣]{2,4}")
         private val DATE_PATTERN =
@@ -95,7 +95,7 @@ class IdCardInfoExtractor {
 
     fun extractName(text: String, idType: Int): String {
         val lines = text.split("\n").filter { it.isNotBlank() }
-        val startIndex = if (idType == ID_TYPE_DRIVER) 2 else 0
+        val startIndex = if (idType == ID_TYPE_DRIVER) 3 else 1
         for (i in startIndex until lines.size) {
             val line = lines[i]
 

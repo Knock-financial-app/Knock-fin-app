@@ -7,6 +7,7 @@
 
     <!-- 닫기 버튼 -->
     <ImageButton
+        android:contentDescription="닫기"
         android:id="@+id/XButton"
         android:layout_width="20dp"
         android:layout_height="20dp"

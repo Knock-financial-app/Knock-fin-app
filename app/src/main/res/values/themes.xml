@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.MyApplication" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/Theme_color_main</item>
+        <item name="android:navigationBarColor">@color/Theme_color_main</item>
         <item name="android:windowIsTranslucent">true</item>
     </style>
     <style name="BottomNavIndicator" parent="">
