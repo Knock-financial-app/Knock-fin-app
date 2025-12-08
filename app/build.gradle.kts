@@ -59,6 +59,7 @@ android {
 }
 
 dependencies {
+    implementation("org.opencv:opencv:4.12.0")
     implementation("org.tensorflow:tensorflow-lite:2.14.0")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
     implementation("com.google.mlkit:text-recognition:16.0.0")
@@ -85,7 +86,6 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.fragment:fragment-ktx:1.8.0")
     implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
-    implementation(project(":OpenCV4.12.0"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
