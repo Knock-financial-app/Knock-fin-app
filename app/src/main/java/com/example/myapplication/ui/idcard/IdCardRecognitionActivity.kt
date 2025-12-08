@@ -8,6 +8,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.RectF
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
@@ -69,6 +70,9 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_id_card_recognition)
         enableEdgeToEdge()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            window.decorView.accessibilityPaneTitle = "신분증 촬영을 시작합니다."
+        }
 
         initViews()
         initComponents()
@@ -99,7 +103,6 @@ class IdCardRecognitionActivity : AppCompatActivity() {
     }
 
     private fun startCamera() {
-        Toast.makeText(this, "촬영을 시작합니다.", Toast.LENGTH_SHORT).show()
         resetProcessing()
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
