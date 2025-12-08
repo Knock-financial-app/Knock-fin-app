@@ -11,7 +11,7 @@
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:background="@color/Theme_color_main"
-        android:src="@drawable/ic_cancel"
+        android:src="@drawable/ic_arrow_left"
         android:layout_margin="30dp"
         android:clickable="true"
         app:layout_constraintStart_toStartOf="parent"

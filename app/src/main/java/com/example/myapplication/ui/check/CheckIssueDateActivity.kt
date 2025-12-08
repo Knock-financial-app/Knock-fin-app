@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.data.IdCardInfo
 import com.example.myapplication.ui.result.CheckDriverLicenseCardActivity
+import com.example.myapplication.ui.result.CheckResidentRegistrationCardActivity
 import kotlin.jvm.java
 
 class CheckIssueDateActivity : AppCompatActivity() {
@@ -63,16 +64,14 @@ class CheckIssueDateActivity : AppCompatActivity() {
 
         nextButton.setOnClickListener{
             saveIssueDate()
-            val intent = Intent(this, CheckDriverLicenseCardActivity::class.java)
-            startActivity(intent)
-//            if (isResidentaCard) {
-//                val intent = Intent(this, CheckResidentRegistrationCardActivity::class.java)
-//                startActivity(intent)
-//            }
-//            else if (isDriverLicense) {
-//                val intent = Intent(this, CheckDriverLicenseCardActivity::class.java)
-//                startActivity(intent)
-//            }
+            if (isResidentaCard) {
+                val intent = Intent(this, CheckResidentRegistrationCardActivity::class.java)
+                startActivity(intent)
+            }
+            else if (isDriverLicense) {
+                val intent = Intent(this, CheckDriverLicenseCardActivity::class.java)
+                startActivity(intent)
+            }
         }
 
         val dateFull = IdCardInfo.current.issueDate
