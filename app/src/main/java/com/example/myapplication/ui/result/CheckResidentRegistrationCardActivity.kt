@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.result
 
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -60,9 +61,7 @@ class CheckResidentRegistrationCardActivity : AppCompatActivity() {
         }
 
         xButton.setOnClickListener{
-            val intent = Intent(this, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-            startActivity(intent)
+            showCancelConfirmDialog()
         }
 
         reCameraButton.setOnClickListener{
@@ -78,6 +77,29 @@ class CheckResidentRegistrationCardActivity : AppCompatActivity() {
         }
 
         loadData()
+    }
+
+    private fun showCancelConfirmDialog() {
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_cancel_confirm, null)
+        val dialog = android.app.Dialog(this).apply {
+            requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+            setContentView(dialogView)
+            window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
+            window?.setLayout(
+                (resources.displayMetrics.widthPixels * 0.85).toInt(),
+                android.view.WindowManager.LayoutParams.WRAP_CONTENT
+            )
+            setCancelable(true)
+        }
+
+        dialogView.findViewById<android.widget.Button>(R.id.btnCancel).setOnClickListener {
+            dialog.dismiss()
+        }
+        dialogView.findViewById<android.widget.Button>(R.id.btnConfirm).setOnClickListener {
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     override fun onResume() {

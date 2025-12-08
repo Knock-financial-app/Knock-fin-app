@@ -19,6 +19,7 @@
         android:layout_height="match_parent" />
     <ImageView
         android:id="@+id/cancel_button"
+        android:contentDescription="닫기"
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:src="@drawable/ic_cancel"
