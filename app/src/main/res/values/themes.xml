@@ -14,4 +14,28 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
+
+    <style name="CustomAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:background">@color/Theme_color_main</item>
+        <item name="shapeAppearanceOverlay">@style/DialogCornerRadius</item>
+    </style>
+    <style name="DialogCornerRadius">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+    <style name="DialogTitleStyle" parent="MaterialAlertDialog.Material3.Title.Text">
+        <item name="android:textColor">#333333</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="DialogBodyStyle" parent="MaterialAlertDialog.Material3.Body.Text">
+        <item name="android:textColor">#666666</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="DialogButtonStyle" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="backgroundTint">@color/Theme_color_point</item>
+        <item name="android:textColor">@color/Theme_color_main</item>
+        <item name="android:textSize">14sp</item>
+        <item name="cornerSize">16dp</item>
+    </style>
 </resources>

@@ -1,4 +1,4 @@
-package com.example.myapplication.ui.idcard
+package com.example.myapplication.ui.idcard.detector
 
 import android.content.Context
 import android.graphics.Bitmap
