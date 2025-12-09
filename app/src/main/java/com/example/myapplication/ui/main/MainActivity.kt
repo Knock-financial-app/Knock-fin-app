@@ -1,7 +1,11 @@
 package com.example.myapplication.ui.main
 
 import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import com.example.myapplication.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -14,11 +18,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val rootView = findViewById<View>(R.id.root_layout)
         bottomNavigation = findViewById(R.id.bottomNavigation)
 
+        setupBottomNavigation(rootView, bottomNavigation)
         if (savedInstanceState == null) {
             loadFragment(HomeFragment())
         }
+
 
         bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -44,6 +51,31 @@ class MainActivity : AppCompatActivity() {
                 }
                 else -> false
             }
+        }
+    }
+
+    private fun setupBottomNavigation(rootView: View, bottomNav: BottomNavigationView) {
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { _, insets ->
+            val navBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+
+            val params = bottomNav.layoutParams as ViewGroup.MarginLayoutParams
+            params.bottomMargin = navBarHeight
+            bottomNav.layoutParams = params
+
+            insets
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { _, insets ->
+            insets
+        }
+
+        bottomNav.post {
+            bottomNav.setPadding(
+                bottomNav.paddingLeft,
+                0,
+                bottomNav.paddingRight,
+                0
+            )
         }
     }
 
