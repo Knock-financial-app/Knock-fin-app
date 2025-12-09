@@ -25,7 +25,7 @@ class OverlayView @JvmOverloads constructor(
     private var guideColor: Int = Color.WHITE
     private var debugText: String = ""
     private var statusMessage: String = ""
-    private var showDebug: Boolean = true
+    private var showDebug: Boolean = false
 
     private val guidePaint = Paint().apply {
         style = Paint.Style.STROKE
