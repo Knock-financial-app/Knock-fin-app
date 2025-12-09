@@ -70,9 +70,6 @@ class IdCardRecognitionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_id_card_recognition)
         enableEdgeToEdge()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            window.decorView.accessibilityPaneTitle = "신분증 촬영을 시작합니다."
-        }
 
         initViews()
         initComponents()
@@ -104,7 +101,7 @@ class IdCardRecognitionActivity : AppCompatActivity() {
 
     private fun startCamera() {
         resetProcessing()
-
+        announceForAccessibility("촬영을 시작합니다.")
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
